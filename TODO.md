@@ -59,7 +59,7 @@
 
 ### フロントエンド
 
-- [ ] **#6 フロントエンド Services 層と型定義を実装する** (blocked by: #1)
+- [x] **#6 フロントエンド Services 層と型定義を実装する** (blocked by: #1)
   - src/types/podcast.ts: Podcast, PodcastSummary, PodcastNewCount
   - src/types/episode.ts: Episode
   - src/types/settings.ts: AppSettings, DownloadProgress, BatchDownloadProgress
