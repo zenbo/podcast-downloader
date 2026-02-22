@@ -52,7 +52,7 @@ export function PodcastCard({
         {podcast.newEpisodeCount > 0 && (
           <Badge variant="destructive">{podcast.newEpisodeCount}</Badge>
         )}
-        <Button variant="ghost" size="icon" onClick={onDelete}>
+        <Button variant="ghost" size="icon" aria-label="削除" onClick={onDelete}>
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>

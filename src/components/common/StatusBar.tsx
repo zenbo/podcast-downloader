@@ -21,14 +21,11 @@ export function StatusBar({ progress }: StatusBarProps) {
     <div className="border-t px-4 py-2">
       <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
         <span className="truncate mr-2">{progress.title}</span>
-        {progress.type === "batch" && (
-          <span className="shrink-0">
-            {progress.completedCount}/{progress.totalCount}
-          </span>
-        )}
-        {progress.type === "single" && (
-          <span className="shrink-0">{Math.round(progress.percentage)}%</span>
-        )}
+        <span className="shrink-0">
+          {progress.type === "batch" &&
+            `${progress.completedCount}/${progress.totalCount} · `}
+          {Math.round(progress.percentage)}%
+        </span>
       </div>
       <Progress value={progress.percentage} />
     </div>

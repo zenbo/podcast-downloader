@@ -23,7 +23,9 @@ export function EpisodeCard({
   return (
     <Card className="flex items-center gap-3 p-3">
       <div className="shrink-0 w-5 flex justify-center">
-        {isDownloaded ? (
+        {isDownloading ? (
+          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        ) : isDownloaded ? (
           <Check className="h-4 w-4 text-green-600" />
         ) : (
           <Circle className="h-3 w-3 fill-blue-500 text-blue-500" />
@@ -41,6 +43,7 @@ export function EpisodeCard({
       <Button
         variant="ghost"
         size="icon"
+        aria-label="ダウンロード"
         onClick={onDownload}
         disabled={isDownloading}
       >

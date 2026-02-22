@@ -18,6 +18,7 @@ export function Header({ backTo, children }: HeaderProps) {
           <Button
             variant="ghost"
             size="icon"
+            aria-label="戻る"
             onClick={() => navigate(backTo)}
           >
             <ArrowLeft className="h-5 w-5" />
@@ -30,6 +31,7 @@ export function Header({ backTo, children }: HeaderProps) {
         <Button
           variant="ghost"
           size="icon"
+          aria-label="設定"
           onClick={() => navigate("/settings")}
         >
           <Settings className="h-5 w-5" />

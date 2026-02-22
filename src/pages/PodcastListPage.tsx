@@ -178,16 +178,14 @@ function PodcastListPage() {
         onOpenChange={setRegisterDialogOpen}
       />
 
-      {deleteTarget && (
-        <DeletePodcastDialog
-          open={true}
-          onOpenChange={(open) => {
-            if (!open) setDeleteTarget(null);
-          }}
-          podcastTitle={deleteTarget.title}
-          podcastId={deleteTarget.id}
-        />
-      )}
+      <DeletePodcastDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        podcastTitle={deleteTarget?.title ?? ""}
+        podcastId={deleteTarget?.id ?? 0}
+      />
     </div>
   );
 }

@@ -141,6 +141,7 @@ function SettingsPage() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    aria-label="ルールを削除"
                     onClick={() => removeRule(index)}
                   >
                     <Trash2 className="h-4 w-4" />

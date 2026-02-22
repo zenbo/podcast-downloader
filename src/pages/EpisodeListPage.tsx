@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -18,9 +18,10 @@ import { EpisodeCard } from "@/components/episode/EpisodeCard";
 function EpisodeListPage() {
   const { id } = useParams();
   const podcastId = Number(id);
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: podcasts } = usePodcasts();
+  const { data: podcasts, isSuccess: podcastsLoaded } = usePodcasts();
   const podcast = podcasts?.find((p) => p.id === podcastId);
 
   const { data: episodes, isLoading, error } = useEpisodes(podcastId);
@@ -94,23 +95,40 @@ function EpisodeListPage() {
 
   const isDownloading = downloadingEpisodeId !== null || isBatchDownloading;
 
-  const statusBarProgress = batchProgress
-    ? {
+  const statusBarProgress = useMemo(() => {
+    if (batchProgress) {
+      return {
         type: "batch" as const,
         title: batchProgress.currentEpisodeTitle,
         percentage: batchProgress.episodeProgress.percentage ?? 0,
         completedCount: batchProgress.completedCount,
         totalCount: batchProgress.totalCount,
-      }
-    : singleProgress
-      ? {
-          type: "single" as const,
-          title:
-            episodes?.find((e) => e.id === singleProgress.episodeId)?.title ??
-            "",
-          percentage: singleProgress.percentage ?? 0,
-        }
-      : null;
+      };
+    }
+    if (singleProgress) {
+      return {
+        type: "single" as const,
+        title:
+          episodes?.find((e) => e.id === singleProgress.episodeId)?.title ?? "",
+        percentage: singleProgress.percentage ?? 0,
+      };
+    }
+    return null;
+  }, [batchProgress, singleProgress, episodes]);
+
+  if (podcastsLoaded && !podcast) {
+    return (
+      <div className="flex flex-col h-screen">
+        <Header backTo="/" />
+        <div className="flex-1 flex flex-col items-center justify-center gap-4">
+          <p className="text-muted-foreground">番組が見つかりませんでした</p>
+          <Button variant="outline" onClick={() => navigate("/")}>
+            番組一覧に戻る
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen">

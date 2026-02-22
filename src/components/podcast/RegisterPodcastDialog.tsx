@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useRegisterPodcast } from "@/hooks/use-podcasts";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +50,10 @@ export function RegisterPodcastDialog({
         setUrl("");
         setValidationError(null);
         onOpenChange(false);
+        toast.success("番組を登録しました");
+      },
+      onError: (err) => {
+        toast.error(String(err));
       },
     });
   }
