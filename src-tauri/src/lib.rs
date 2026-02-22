@@ -20,6 +20,19 @@ pub fn run() {
             app.manage(db::DbState(Mutex::new(conn)));
             Ok(())
         })
+        .invoke_handler(tauri::generate_handler![
+            commands::podcast::register_podcast,
+            commands::podcast::list_podcasts,
+            commands::podcast::delete_podcast,
+            commands::episode::list_episodes,
+            commands::episode::check_new_episodes,
+            commands::episode::check_all_new,
+            commands::download::download_episode,
+            commands::download::batch_download_new,
+            commands::settings::get_settings,
+            commands::settings::update_settings,
+            commands::settings::select_folder,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

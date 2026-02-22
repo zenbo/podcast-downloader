@@ -49,7 +49,7 @@
   - services/filename.rs: 文字置換ルール適用、OS 禁止文字サニタイズ
   - 参照: 02-architecture 3.4-3.7
 
-- [ ] **#5 Tauri コマンド (commands/) を実装する** (blocked by: #3, #4)
+- [x] **#5 Tauri コマンド (commands/) を実装する** (blocked by: #3, #4)
   - commands/podcast.rs: register_podcast, list_podcasts, delete_podcast
   - commands/episode.rs: list_episodes, check_new_episodes, check_all_new
   - commands/download.rs: download_episode (Channel API), batch_download_new (Channel API)
