@@ -17,6 +17,11 @@
       └─ #9 設定画面
 
 #10 CI/CD パイプライン              ← 独立して着手可能
+
+#11 フロントエンドテスト基盤         ← 独立して着手可能
+  ├─ #12 services/ ユニットテスト
+  └─ #13 hooks/ ユニットテスト
+
 ```
 
 ## タスク一覧
@@ -91,6 +96,24 @@
   - フォールバック置換文字の設定
   - tauri-plugin-store 経由での設定保存・読み込み
   - 参照: 04-ui-design, 03-data-design 4.1
+
+### フロントエンドテスト
+
+- [x] **#11 フロントエンドテスト基盤をセットアップする**
+  - vitest.config.ts を作成（jsdom 環境設定）
+  - Tauri invoke のグローバルモックを setup ファイルに定義
+  - 参照: 05-development-guide 3.2
+
+- [x] **#12 services/ 層のユニットテストを実装する** (blocked by: #11)
+  - src/services/podcast.ts: invoke の呼び出し引数・戻り値の変換を検証
+  - src/services/episode.ts: 同上
+  - src/services/download.ts: Channel API 対応のイベントリスナー登録を検証
+  - src/services/settings.ts: 同上
+
+- [x] **#13 hooks/ のユニットテストを実装する** (blocked by: #11)
+  - use-podcasts: 番組一覧取得・登録・削除の状態遷移とエラーハンドリング
+  - use-episodes: エピソード取得・新着チェックの状態遷移
+  - use-settings: 設定読み込み・保存の状態遷移
 
 ### CI/CD
 
