@@ -40,7 +40,7 @@ pub fn insert(
 /// 番組一覧を新着エピソード数付きで取得する
 pub fn list(conn: &Connection) -> Result<Vec<PodcastSummary>, AppError> {
     let mut stmt = conn.prepare(
-        "SELECT p.id, p.title, p.image_url,
+        "SELECT p.id, p.title, p.author, p.image_url,
            (SELECT COUNT(*) FROM episodes e
             WHERE e.podcast_id = p.id
               AND e.downloaded_at IS NULL
@@ -58,6 +58,7 @@ pub fn list(conn: &Connection) -> Result<Vec<PodcastSummary>, AppError> {
         Ok(PodcastSummary {
             id: row.get("id")?,
             title: row.get("title")?,
+            author: row.get("author")?,
             image_url: row.get("image_url")?,
             new_episode_count: row.get::<_, i64>("new_episode_count")? as usize,
         })

@@ -16,6 +16,7 @@ export interface Podcast {
 export interface PodcastSummary {
   id: number;
   title: string;
+  author: string | null;
   imageUrl: string | null;
   newEpisodeCount: number;
 }

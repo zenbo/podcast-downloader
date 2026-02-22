@@ -22,6 +22,7 @@ pub struct Podcast {
 pub struct PodcastSummary {
     pub id: i64,
     pub title: String,
+    pub author: Option<String>,
     pub image_url: Option<String>,
     pub new_episode_count: usize,
 }

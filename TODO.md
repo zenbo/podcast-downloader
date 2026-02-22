@@ -69,7 +69,7 @@
   - src/services/settings.ts: getSettings, updateSettings, selectFolder
   - 参照: 02-architecture 4.3-4.4
 
-- [ ] **#7 番組一覧画面 (PodcastListPage) を実装する** (blocked by: #5, #6)
+- [x] **#7 番組一覧画面 (PodcastListPage) を実装する** (blocked by: #5, #6)
   - 番組一覧のカード/リスト表示（アートワーク、タイトル、新着バッジ）
   - 番組登録ダイアログ（Apple Podcasts URL 入力）
   - 番組削除の確認ダイアログ
