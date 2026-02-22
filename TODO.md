@@ -35,7 +35,7 @@
   - Serialize 実装と thiserror の #[error] アトリビュートを設定
   - 参照: 02-architecture 6.1
 
-- [ ] **#3 DB 層 (db/) を実装する** (blocked by: #1, #2)
+- [x] **#3 DB 層 (db/) を実装する** (blocked by: #1, #2)
   - db/mod.rs: DB 接続管理、マイグレーション実行 (rusqlite_migration 2.x API)、PRAGMA foreign_keys = ON
   - db/podcast.rs: insert, list (with new_episode_count), get, delete, update_last_checked
   - db/episode.rs: insert_bulk, list_by_podcast, get, mark_downloaded, 新着判定クエリ
