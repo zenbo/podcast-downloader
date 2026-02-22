@@ -30,7 +30,7 @@
   - すべて serde の Serialize/Deserialize を derive する
   - 参照: 02-architecture 4.4, 05-development-guide
 
-- [ ] **#2 エラー型 (error.rs) を完成させる** (blocked by: #1)
+- [x] **#2 エラー型 (error.rs) を完成させる** (blocked by: #1)
   - Database(rusqlite::Error), Http(reqwest::Error), RssParse(String), InvalidUrl(String), PodcastIdNotFound(String), FeedUrlNotFound, FileSystem(std::io::Error), Other(String)
   - Serialize 実装と thiserror の #[error] アトリビュートを設定
   - 参照: 02-architecture 6.1
