@@ -87,7 +87,7 @@ pnpm tauri dev
 
 ```toml
 [tools]
-node = "22"     # LTS バージョンを指定（実装時に確定）
+node = "24"     # LTS バージョンを指定
 ```
 
 ### 1.4 .node-version
@@ -95,7 +95,7 @@ node = "22"     # LTS バージョンを指定（実装時に確定）
 CI の `actions/setup-node` は `.mise.toml` を直接読めないため、`.node-version` ファイルもプロジェクトルートに配置する。
 
 ```
-22
+24
 ```
 
 ローカル開発では mise が `.mise.toml` を参照し、CI では `actions/setup-node` が `.node-version` を参照する。
