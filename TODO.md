@@ -23,7 +23,7 @@
 
 ### Rust バックエンド
 
-- [ ] **#1 Rust データモデル (models/) を実装する**
+- [x] **#1 Rust データモデル (models/) を実装する**
   - models/podcast.rs: Podcast, PodcastSummary, PodcastNewCount
   - models/episode.rs: Episode
   - models/settings.rs: AppSettings, DownloadProgress, BatchDownloadProgress, CharacterReplacement
