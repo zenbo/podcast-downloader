@@ -42,7 +42,7 @@
   - アプリ起動時に app_data_dir に DB ファイルを作成・接続する初期化処理を含む
   - 参照: 02-architecture 3.2, 03-data-design
 
-- [ ] **#4 サービス層 (services/) を実装する** (blocked by: #1, #2, #3)
+- [x] **#4 サービス層 (services/) を実装する** (blocked by: #1, #2, #3)
   - services/apple_podcasts.rs: URL から Podcast ID 抽出 (正規表現)、iTunes Lookup API で feedUrl 取得
   - services/rss.rs: RSS フィード取得・パース (feed-rs)、PodcastFeed 構造体への変換
   - services/downloader.rs: HTTP ストリーミングダウンロード、Channel API で進捗通知、ファイル保存

@@ -26,6 +26,16 @@ pub struct PodcastSummary {
     pub new_episode_count: usize,
 }
 
+/// RSS フィードからパースした番組情報（DB 挿入前の中間形式）
+#[derive(Debug, Clone)]
+pub struct PodcastFeed {
+    pub title: String,
+    pub author: Option<String>,
+    pub description: Option<String>,
+    pub image_url: Option<String>,
+    pub episodes: Vec<crate::models::episode::NewEpisode>,
+}
+
 /// 全番組の新着チェック結果
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
