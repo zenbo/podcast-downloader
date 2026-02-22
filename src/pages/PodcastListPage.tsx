@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Download, Loader2 } from "lucide-react";
+import { Plus, Download, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 import type { BatchDownloadProgress } from "@/types";
@@ -80,10 +80,19 @@ function PodcastListPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <Header
-        onCheckAllNew={handleCheckAllNew}
-        isChecking={checkAllNew.isPending}
-      />
+      <Header>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleCheckAllNew}
+          disabled={checkAllNew.isPending}
+        >
+          <RefreshCw
+            className={`mr-1.5 h-4 w-4 ${checkAllNew.isPending ? "animate-spin" : ""}`}
+          />
+          全新着チェック
+        </Button>
+      </Header>
 
       <main className="flex-1 overflow-auto p-4">
         <div className="mb-4 flex items-center justify-between">
@@ -150,7 +159,19 @@ function PodcastListPage() {
         )}
       </main>
 
-      <StatusBar progress={batchProgress} />
+      <StatusBar
+        progress={
+          batchProgress
+            ? {
+                type: "batch",
+                title: batchProgress.currentEpisodeTitle,
+                percentage: batchProgress.episodeProgress.percentage ?? 0,
+                completedCount: batchProgress.completedCount,
+                totalCount: batchProgress.totalCount,
+              }
+            : null
+        }
+      />
 
       <RegisterPodcastDialog
         open={registerDialogOpen}

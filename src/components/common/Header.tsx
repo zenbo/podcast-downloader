@@ -1,30 +1,32 @@
+import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { RefreshCw, Settings } from "lucide-react";
+import { ArrowLeft, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface HeaderProps {
-  onCheckAllNew: () => void;
-  isChecking: boolean;
+  backTo?: string;
+  children?: ReactNode;
 }
 
-export function Header({ onCheckAllNew, isChecking }: HeaderProps) {
+export function Header({ backTo, children }: HeaderProps) {
   const navigate = useNavigate();
 
   return (
     <header className="flex items-center justify-between border-b px-4 py-3">
-      <h1 className="text-lg font-bold">Podcast Downloader</h1>
       <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onCheckAllNew}
-          disabled={isChecking}
-        >
-          <RefreshCw
-            className={`mr-1.5 h-4 w-4 ${isChecking ? "animate-spin" : ""}`}
-          />
-          全新着チェック
-        </Button>
+        {backTo && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(backTo)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        )}
+        <h1 className="text-lg font-bold">Podcast Downloader</h1>
+      </div>
+      <div className="flex items-center gap-2">
+        {children}
         <Button
           variant="ghost"
           size="icon"
