@@ -48,41 +48,46 @@ pub async fn check_new_episodes(
 pub async fn check_all_new(
     state: State<'_, DbState>,
 ) -> Result<Vec<PodcastNewCount>, AppError> {
-    // 1. 全番組を取得
-    let podcasts = {
+    // 1. 全番組の id, title, feed_url を一括取得
+    let podcasts: Vec<(i64, String, String)> = {
         let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
-        db::podcast::list(&conn)?
+        let summaries = db::podcast::list(&conn)?;
+        summaries
+            .iter()
+            .filter_map(|s| {
+                db::podcast::get(&conn, s.id)
+                    .ok()
+                    .map(|p| (p.id, p.title, p.feed_url))
+            })
+            .collect()
     };
 
     let mut results = Vec::new();
 
-    for summary in &podcasts {
-        // 2. 番組の feed_url を取得
-        let (feed_url, title) = {
-            let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
-            let podcast = db::podcast::get(&conn, summary.id)?;
-            (podcast.feed_url, podcast.title)
-        };
+    for (podcast_id, title, feed_url) in &podcasts {
 
         // 3. RSS フィードを再取得（ロック外で非同期処理）
         let feed = match rss::fetch_and_parse(&feed_url).await {
             Ok(feed) => feed,
-            Err(_) => continue, // フィード取得失敗はスキップ
+            Err(e) => {
+                log::warn!("番組「{}」のフィード取得に失敗、スキップ: {}", title, e);
+                continue;
+            }
         };
 
         // 4. 新規エピソードを挿入し、新着数をカウント
         let new_count = {
             let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
-            db::episode::insert_bulk(&conn, summary.id, &feed.episodes)?;
-            let new_episodes = db::episode::get_new_episodes(&conn, summary.id)?;
-            db::podcast::update_last_checked(&conn, summary.id)?;
+            db::episode::insert_bulk(&conn, *podcast_id, &feed.episodes)?;
+            let new_episodes = db::episode::get_new_episodes(&conn, *podcast_id)?;
+            db::podcast::update_last_checked(&conn, *podcast_id)?;
             new_episodes.len()
         };
 
         results.push(PodcastNewCount {
-            podcast_id: summary.id,
-            title,
-            new_count: new_count,
+            podcast_id: *podcast_id,
+            title: title.clone(),
+            new_count,
         });
     }
 

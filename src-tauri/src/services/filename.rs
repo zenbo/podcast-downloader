@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::models::settings::CharacterReplacement;
 
@@ -60,12 +60,13 @@ pub fn build_download_path(
 
 /// URL から拡張子を抽出する（クエリパラメータを除去）
 fn extract_extension(url: &str) -> &str {
-    // クエリパラメータや フラグメントを除去
+    // クエリパラメータやフラグメントを除去
     let path = url.split('?').next().unwrap_or(url);
     let path = path.split('#').next().unwrap_or(path);
 
-    path.rsplit('.')
-        .next()
+    Path::new(path)
+        .extension()
+        .and_then(|ext| ext.to_str())
         .unwrap_or("mp3")
 }
 

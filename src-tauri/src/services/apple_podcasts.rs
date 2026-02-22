@@ -1,7 +1,11 @@
+use std::sync::LazyLock;
+
 use regex::Regex;
 use serde::Deserialize;
 
 use crate::error::AppError;
+
+static PODCAST_ID_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"id(\d+)").unwrap());
 
 #[derive(Deserialize)]
 struct ItunesResponse {
@@ -16,8 +20,7 @@ struct ItunesResult {
 
 /// Apple Podcasts URL から Podcast ID を抽出する
 pub fn extract_podcast_id(url: &str) -> Result<String, AppError> {
-    let re = Regex::new(r"id(\d+)").unwrap();
-    let caps = re
+    let caps = PODCAST_ID_RE
         .captures(url)
         .ok_or_else(|| AppError::PodcastIdNotFound(url.to_string()))?;
     Ok(caps[1].to_string())
