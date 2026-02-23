@@ -30,6 +30,7 @@
 #19 デフォルト文字置換ルールの見直し  ← 独立して着手可能
 #20 エピソード一覧のセクション分け廃止 ← 独立して着手可能
 #21 番組カードのレイアウト修正        ← 独立して着手可能
+#22 アプリ identifier の変更          ← 独立して着手可能
 ```
 
 ## タスク一覧
@@ -212,3 +213,12 @@
     - 選択時にカード全体の背景色やボーダー色を変えて、選択状態を視覚的に明示する
   - 影響範囲:
     - src/components/podcast/PodcastCard.tsx
+
+### 設定
+
+- [ ] **#22 アプリ identifier を変更する**
+  - 経緯: 現在の `com.podcast-downloader.app` は逆ドメイン表記だが、`podcast-downloader.com` を所有していない。個人ドメイン `zenbo.jp` も候補だが将来手放す可能性がある
+  - 変更内容: `com.podcast-downloader.app` → `com.github.zenbo.podcast-downloader`（GitHub アカウントは失効リスクがないため）
+  - 影響範囲:
+    - src-tauri/tauri.conf.json: `identifier` フィールド
+    - 既存の設定ファイル・DB の保存先ディレクトリ名が変わるため、既存データは引き継がれない点に注意（開発段階のため問題なし）
