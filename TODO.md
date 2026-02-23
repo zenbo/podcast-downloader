@@ -22,6 +22,10 @@
   ├─ #12 services/ ユニットテスト
   └─ #13 hooks/ ユニットテスト
 
+#14 RSS解析層テスト                 ← 独立して着手可能
+#15 Commands層リファクタリング       ← 独立して着手可能
+  └─ #16 Commands層テスト
+#17 duration フィールド削除          ← 独立して着手可能
 ```
 
 ## タスク一覧
@@ -114,6 +118,40 @@
   - use-podcasts: 番組一覧取得・登録・削除の状態遷移とエラーハンドリング
   - use-episodes: エピソード取得・新着チェックの状態遷移
   - use-settings: 設定読み込み・保存の状態遷移
+
+### Rust バックエンドテスト
+
+- [x] **#14 RSS 解析層のユニットテストを実装する**
+  - services/rss.rs のパース処理に対するテスト
+  - フィクスチャ XML（正常系・異常系）を用意してネットワーク不要でテスト
+  - テスト観点:
+    - 標準的な RSS 2.0 フィードのパース
+    - タグ欠落・日付フォーマット揺れなど実際のフィードで起こりうる異常への耐性
+    - エピソード数が 0 件のフィード
+    - audio_url が存在しないエントリのスキップ
+
+- [ ] **#15 Commands 層をテスト可能にリファクタリングする**
+  - batch_download_new のインライン HTTP ダウンロード実装を downloader::download() と共通化し、コード重複を解消する
+  - 外部 IO（HTTP クライアント、ファイルシステム、Tauri Store）をトレイトで抽象化し、テスト時にモックを差し込めるようにする
+  - check_all_new の複数回 db::podcast::get() 呼び出しを 1 クエリに最適化する
+
+- [ ] **#16 Commands 層のユニットテストを実装する** (blocked by: #15)
+  - download_episode: 設定未設定時のエラー、DL 失敗時に mark_downloaded が呼ばれないこと
+  - batch_download_new: 一部エピソード失敗時の部分的成功、進捗通知の completed_count の正確性
+  - check_all_new: 1 番組の RSS 取得失敗時に他の番組は継続すること
+  - register_podcast: RSS パースエラー時に DB 登録が行われないこと
+
+### 設計変更
+
+- [ ] **#17 duration フィールドを削除する**
+  - 経緯: #14 の RSS テスト実装時に、feed-rs が `itunes:duration` の `MM:SS` 形式を正しくパースしないことが判明（`02:05` が 2 秒として解釈される）。`HH:MM:SS` や秒数指定は正常。実際の Podcast フィードでは `MM:SS` 形式が多用されており、不正確な値を表示するくらいなら削除する方が良いと判断
+  - ADR を作成する
+  - 影響範囲:
+    - Models: NewEpisode, Episode から duration フィールド削除
+    - DB: episodes テーブルの duration カラム削除（マイグレーション）
+    - services/rss.rs: duration 抽出ロジック削除
+    - フロントエンド: duration の表示箇所を削除
+    - 設計ドキュメント: 03-data-design 等を更新
 
 ### CI/CD
 
