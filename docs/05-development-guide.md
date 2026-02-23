@@ -150,65 +150,16 @@ pnpm tauri build
 
 ## 3. テスト方針
 
-テストフレームワークの詳細な選定は実装フェーズで決定する。以下は現時点の方針。
-
 ### 3.1 Rust バックエンドテスト
 
-#### 単体テスト
-
-- 各モジュール内に `#[cfg(test)]` で定義する
-- ビジネスロジック（services/）を中心にテストを記述する
-- 外部 API（iTunes、RSS）は trait を使ったモック化を検討
-
-#### DB テスト
-
-- **インメモリ SQLite** (`":memory:"`) を使用してテストする
-- テストごとにマイグレーションを実行し、クリーンな状態でテストする
-
-```rust
-#[cfg(test)]
-mod tests {
-    use rusqlite::Connection;
-
-    fn setup_test_db() -> Connection {
-        let conn = Connection::open_in_memory().unwrap();
-        // マイグレーション実行
-        MIGRATIONS.to_latest(&mut conn).unwrap();
-        conn
-    }
-
-    #[test]
-    fn test_insert_podcast() {
-        let conn = setup_test_db();
-        // テスト実装
-    }
-}
-```
-
-#### テスト対象の優先度
-
-1. **services/filename.rs** — 文字置換ロジック（OS 禁止文字の処理）
-2. **services/apple_podcasts.rs** — URL からの Podcast ID 抽出
-3. **db/podcast.rs, db/episode.rs** — CRUD 操作、新着判定クエリ、ダウンロード状態更新
-4. **services/rss.rs** — RSS パース処理
+- 各モジュール内に `#[cfg(test)]` で定義
+- 外部 API（iTunes、RSS、ファイルダウンロード）は **trait によるモック化**（ADR-012）で分離済み。テスト用モックは `src-tauri/src/commands/test_helpers.rs` に集約
+- DB テストは **インメモリ SQLite** (`":memory:"`) を使用し、テストごとにマイグレーションを実行
 
 ### 3.2 フロントエンドテスト
 
-#### テストフレームワーク（候補）
-
-- **Vitest** — テストランナー（Vite との親和性が高い）
-- **Testing Library** — コンポーネントテスト
-
-#### Tauri invoke のモック
-
-フロントエンドテストでは Tauri の `invoke` をモックする必要がある。
-
-```typescript
-// テストユーティリティ例
-vi.mock("@tauri-apps/api/core", () => ({
-  invoke: vi.fn(),
-}));
-```
+- **Vitest** をテストランナーとして使用（Vite との親和性が高い）
+- Tauri の `invoke` は `vi.mock` でモック化
 
 ## 4. Lint・フォーマット設定
 
@@ -222,7 +173,7 @@ vi.mock("@tauri-apps/api/core", () => ({
 
 - **ESLint**: JavaScript/TypeScript の静的解析
 - **Prettier**: コードフォーマッター
-- 設定ファイル: `.eslintrc.cjs` / `.prettierrc`（実装時に作成）
+- 設定ファイル: `eslint.config.js`（フラットコンフィグ）/ `.prettierrc`
 
 ## 5. CI/CD 設計
 
@@ -251,120 +202,17 @@ flowchart LR
 
 ### 5.2 ci.yml — Lint・テスト・ビルドチェック
 
-**トリガー**: プルリクエスト、main ブランチへの push
-
-```yaml
-name: CI
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-jobs:
-  lint-and-test:
-    runs-on: ubuntu-latest  # Lint・テストはLinuxで十分
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
-
-      - name: Install system dependencies (Ubuntu)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.node-version'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Install dependencies
-        run: pnpm install
-
-      # Rust Lint
-      - name: Cargo clippy
-        run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
-
-      - name: Cargo fmt check
-        run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
-
-      # TypeScript Lint
-      - name: ESLint
-        run: pnpm lint
-
-      - name: Prettier check
-        run: pnpm format:check
-
-      # Tests
-      - name: Cargo test
-        run: cargo test --manifest-path src-tauri/Cargo.toml
-
-      - name: Frontend test
-        run: pnpm test
-```
+- **トリガー**: プルリクエスト、main ブランチへの push
+- **実行環境**: ubuntu-latest（Lint・テストは Linux で十分）
+- **ステップ**: Rust セットアップ → システム依存パッケージ → Node.js/pnpm → clippy + fmt → ESLint + Prettier → cargo test + pnpm test
 
 ### 5.3 release.yml — ビルド・リリース
 
-**トリガー**: `v*` パターンのタグ push
+- **トリガー**: `v*` パターンのタグ push
+- **実行環境**: windows-latest（ターゲットプラットフォーム）
+- **ビルド**: `tauri-apps/tauri-action` でビルドし、GitHub Releases にドラフトリリースとして添付
 
-```yaml
-name: Release
-
-on:
-  push:
-    tags:
-      - 'v*'
-
-jobs:
-  release:
-    permissions:
-      contents: write
-    strategy:
-      matrix:
-        include:
-          - platform: windows-latest
-            args: ''
-          # 将来的に macOS / Linux を追加可能
-          # - platform: macos-latest
-          #   args: ''
-    runs-on: ${{ matrix.platform }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.node-version'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build and Release
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'Podcast Downloader ${{ github.ref_name }}'
-          releaseBody: 'See the assets to download this version.'
-          releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.args }}
-```
+ワークフロー定義の詳細は `.github/workflows/` 配下の各ファイルを参照。
 
 ## 6. リリース手順
 

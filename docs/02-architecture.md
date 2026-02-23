@@ -46,56 +46,27 @@ graph TD
 ```
 podcast-downloader/
 ├── docs/                           # 設計ドキュメント
-│   ├── 01-requirements.md
-│   ├── 02-architecture.md
-│   ├── 03-data-design.md
-│   ├── 04-ui-design.md
-│   ├── 05-development-guide.md
-│   └── decisions/              # 設計判断記録（ADR）
+│   └── decisions/                  # 設計判断記録（ADR）
 ├── src/                            # フロントエンド (React + TypeScript)
-│   ├── components/                 # UIコンポーネント
-│   │   ├── common/                 # 共通コンポーネント
-│   │   ├── podcast/                # 番組関連
-│   │   ├── episode/                # エピソード関連
-│   │   └── settings/               # 設定関連
-│   ├── hooks/                      # カスタムフック
+│   ├── components/                 # UIコンポーネント（common/podcast/episode/settings）
+│   ├── hooks/                      # カスタムフック（TanStack Query ラッパー）
 │   ├── pages/                      # ページコンポーネント
 │   ├── services/                   # Tauri invoke ラッパー
-│   ├── stores/                     # 状態管理 (useState)
 │   ├── types/                      # TypeScript 型定義
-│   ├── utils/                      # ユーティリティ関数
-│   ├── App.tsx                     # ルートコンポーネント
-│   └── main.tsx                    # エントリーポイント
+│   └── utils/                      # ユーティリティ関数
 ├── src-tauri/                      # バックエンド (Rust)
 │   ├── src/
-│   │   ├── commands/               # Tauri コマンド定義
-│   │   │   ├── mod.rs
-│   │   │   ├── podcast.rs          # 番組関連コマンド
-│   │   │   ├── episode.rs          # エピソード関連コマンド
-│   │   │   ├── download.rs         # ダウンロード関連コマンド
-│   │   │   └── settings.rs         # 設定関連コマンド（tauri-plugin-store経由）
+│   │   ├── commands/               # Tauri コマンド定義（番組・エピソード・DL・設定）
+│   │   │   └── test_helpers.rs     # テスト用共通ユーティリティ（モック等）
 │   │   ├── services/               # ビジネスロジック
-│   │   │   ├── mod.rs
-│   │   │   ├── rss.rs              # RSS フィード取得・パース
-│   │   │   ├── apple_podcasts.rs   # Apple Podcasts URL → RSS 変換
-│   │   │   ├── downloader.rs       # ファイルダウンロード
-│   │   │   └── filename.rs         # ファイル名サニタイズ・置換
-│   │   ├── db/                     # データベース操作
-│   │   │   ├── mod.rs              # DB 接続管理・マイグレーション
-│   │   │   ├── podcast.rs          # 番組 CRUD
-│   │   │   └── episode.rs          # エピソード CRUD（DL状態管理を含む）
-│   │   ├── models/                 # データモデル
-│   │   │   ├── mod.rs
-│   │   │   ├── podcast.rs
-│   │   │   ├── episode.rs
-│   │   │   └── settings.rs
+│   │   │   ├── traits.rs           # サービス層の trait 定義（ADR-012）
+│   │   │   └── real.rs             # trait の本番実装
+│   │   ├── db/                     # データベース操作（CRUD・マイグレーション）
+│   │   ├── models/                 # データモデル（Serialize/Deserialize）
 │   │   ├── error.rs                # エラー型定義
-│   │   ├── lib.rs                  # アプリ構築・コマンド登録
-│   │   └── main.rs                 # エントリーポイント
-│   ├── migrations/                 # SQLマイグレーションファイル
-│   │   └── 001_initial.sql
+│   │   └── lib.rs                  # アプリ構築・コマンド登録
+│   ├── migrations/                 # SQL マイグレーションファイル
 │   ├── capabilities/               # Tauri 権限設定
-│   │   └── default.json
 │   ├── Cargo.toml
 │   └── tauri.conf.json
 ├── .github/
@@ -107,9 +78,7 @@ podcast-downloader/
 ├── tsconfig.json
 ├── vite.config.ts
 ├── .mise.toml                      # Node.js バージョン固定（ローカル開発用）
-├── .node-version                   # Node.js バージョン固定（CI 用）
-├── memo.txt                        # 初期要件メモ
-└── README.md
+└── .node-version                   # Node.js バージョン固定（CI 用）
 ```
 
 ## 3. バックエンド設計 (Rust)
@@ -120,8 +89,10 @@ podcast-downloader/
 
 1. **DB 接続**: `$APPDATA/podcast-downloader/` に SQLite DB ファイルを作成・接続
 2. **マイグレーション実行**: `rusqlite_migration` でスキーマを最新バージョンに更新
-3. **設定ファイル初期化**: tauri-plugin-store の設定ファイルが存在しない場合、デフォルト値（文字置換ルール、フォールバック置換文字）で作成
+3. **サービスコンテナ登録**: `ServiceContainer`（trait 実装群）を Tauri の managed state に登録
 4. **Tauri コマンド登録・アプリ起動**: 全コマンドを登録し、WebView を起動
+
+> **設定の初期化**: tauri-plugin-store の設定ファイルは初回 `get_settings` 呼び出し時に `Default::default()` で遅延生成される。明示的な初期化処理は行わない。
 
 ### 3.2 モジュール依存関係
 
@@ -138,6 +109,7 @@ graph TD
     main --> lib
     lib --> commands
     commands --> services
+    commands --> db
     commands --> models
     services --> db
     services --> models
@@ -151,7 +123,7 @@ graph TD
 
 | 層 | 責務 | 依存先 |
 |---|------|-------|
-| commands/ | フロントエンドからの IPC リクエストの受付。引数のバリデーション。サービス層の呼び出し | services/, models/, error |
+| commands/ | フロントエンドからの IPC リクエストの受付。引数のバリデーション。サービス層・DB 層の呼び出し | services/, db/, models/, error |
 | services/ | ビジネスロジックの実装。外部 API 通信、ファイル操作 | db/, models/, error |
 | db/ | SQLite への CRUD 操作。マイグレーション管理 | models/, error |
 | models/ | データ構造の定義。Serialize/Deserialize 実装 | なし |
@@ -172,7 +144,7 @@ graph TD
 | コマンド名 | 引数 | 戻り値 | 説明 |
 |-----------|------|--------|------|
 | `list_episodes` | `podcast_id: i64` | `Result<Vec<Episode>, Error>` | エピソード一覧取得（DL状態を含む） |
-| `check_new_episodes` | `podcast_id: i64` | `Result<Vec<Episode>, Error>` | 新着エピソードを取得 |
+| `check_new_episodes` | `podcast_id: i64` | `Result<CheckNewResult, Error>` | 新着チェック（新着数・今回発見数を返す） |
 | `check_all_new` | なし | `Result<Vec<PodcastNewCount>, Error>` | 全番組の RSS を再取得し新着状況を返す |
 
 #### ダウンロード関連
@@ -281,7 +253,7 @@ sequenceDiagram
     Cmd->>DB: episode::insert_bulk(新規エピソード)
     Cmd->>DB: 新着判定クエリ実行
     Cmd->>DB: podcast::update_last_checked(podcast_id)
-    Cmd-->>FE: Vec<Episode> (新着一覧)
+    Cmd-->>FE: CheckNewResult (新着数・今回発見数)
 ```
 
 ### 3.8 使用クレート一覧
@@ -298,6 +270,7 @@ sequenceDiagram
 | chrono | 日時処理 |
 | regex | 正規表現（URL からの ID 抽出等） |
 | thiserror | エラー型の定義 |
+| async-trait | サービス trait の非同期メソッド定義（ADR-012） |
 | tauri-plugin-store | アプリ設定の永続化（JSON ファイル） |
 | tauri-plugin-dialog | フォルダ選択ダイアログ |
 | log / env_logger | ログ出力 |
@@ -343,30 +316,11 @@ export async function listPodcasts(): Promise<PodcastSummary[]> {
 
 ### 4.4 型定義
 
-Rust の models/ と対応する TypeScript の型を `src/types/` に定義する。
+Rust の `src-tauri/src/models/` と対応する TypeScript の型を `src/types/` に定義する。Rust 側は `serde(rename_all = "camelCase")` でキャメルケースに変換されるため、TypeScript 側もキャメルケースで定義する。
 
-```typescript
-// src/types/podcast.ts の例
-export interface Podcast {
-  id: number;
-  title: string;
-  author: string | null;
-  description: string | null;
-  feedUrl: string;
-  applePodcastsUrl: string | null;
-  imageUrl: string | null;
-  lastCheckedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PodcastSummary {
-  id: number;
-  title: string;
-  imageUrl: string | null;
-  newEpisodeCount: number;
-}
-```
+型の詳細は以下のファイルを参照:
+- **Rust**: `src-tauri/src/models/{podcast,episode,settings}.rs`
+- **TypeScript**: `src/types/{podcast,episode,settings,progress}.ts`
 
 ## 5. IPC 通信設計
 
@@ -422,88 +376,19 @@ sequenceDiagram
 
 ### 5.3 進捗データ型
 
-**Rust 側**:
+個別ダウンロード（`DownloadProgress`）と一括ダウンロード（`BatchDownloadProgress`）の 2 種類の進捗型を定義している。一括ダウンロードの進捗には、全体の件数・完了件数と現在ダウンロード中のエピソード情報を含む。
 
-```rust
-#[derive(Clone, Serialize)]
-pub struct DownloadProgress {
-    pub episode_id: i64,
-    pub downloaded_bytes: u64,
-    pub total_bytes: Option<u64>,
-    pub percentage: Option<f64>,
-}
-
-#[derive(Clone, Serialize)]
-pub struct BatchDownloadProgress {
-    pub current_episode_id: i64,
-    pub current_episode_title: String,
-    pub episode_progress: DownloadProgress,
-    pub completed_count: usize,
-    pub total_count: usize,
-}
-```
-
-**TypeScript 側**:
-
-```typescript
-export interface DownloadProgress {
-  episodeId: number;
-  downloadedBytes: number;
-  totalBytes: number | null;
-  percentage: number | null;
-}
-
-export interface BatchDownloadProgress {
-  currentEpisodeId: number;
-  currentEpisodeTitle: string;
-  episodeProgress: DownloadProgress;
-  completedCount: number;
-  totalCount: number;
-}
-```
+型の詳細は以下のファイルを参照:
+- **Rust**: `src-tauri/src/models/episode.rs`
+- **TypeScript**: `src/types/progress.ts`
 
 ## 6. エラーハンドリング方針
 
 ### 6.1 Rust エラー型
 
-```rust
-use thiserror::Error;
+`thiserror` でアプリ共通のエラー型 `AppError` を定義し、各層（DB, HTTP, RSS パース, ファイル操作等）のエラーを統合している。Tauri コマンドから返すために `Serialize` を手動実装し、エラーメッセージ文字列としてフロントエンドに伝搬する。
 
-#[derive(Error, Debug)]
-pub enum AppError {
-    #[error("データベースエラー: {0}")]
-    Database(#[from] rusqlite::Error),
-
-    #[error("HTTP通信エラー: {0}")]
-    Http(#[from] reqwest::Error),
-
-    #[error("RSSパースエラー: {0}")]
-    RssParse(String),
-
-    #[error("無効なURL: {0}")]
-    InvalidUrl(String),
-
-    #[error("Podcast IDを抽出できません: {0}")]
-    PodcastIdNotFound(String),
-
-    #[error("RSSフィードURLが見つかりません")]
-    FeedUrlNotFound,
-
-    #[error("ファイル操作エラー: {0}")]
-    FileSystem(#[from] std::io::Error),
-
-    #[error("{0}")]
-    Other(String),
-}
-
-// Tauri コマンドから返すために Serialize を実装
-impl Serialize for AppError {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: serde::Serializer {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-```
+詳細は `src-tauri/src/error.rs` を参照。
 
 ### 6.2 フロントエンドでのエラー表示
 
@@ -514,36 +399,11 @@ impl Serialize for AppError {
 
 ### 7.1 Tauri Capabilities 設定
 
-`src-tauri/capabilities/default.json` で必要最小限の権限を設定する。
-
-```json
-{
-  "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "default",
-  "description": "Podcast Downloader default capabilities",
-  "windows": ["main"],
-  "permissions": [
-    "core:default",
-    {
-      "identifier": "http:default",
-      "allow": [
-        { "url": "https://itunes.apple.com/*" },
-        { "url": "https://*" }
-      ]
-    },
-    "dialog:default",
-    "store:default",
-    {
-      "identifier": "fs:default",
-      "allow": [
-        { "path": "$APPDATA/**" }
-      ]
-    }
-  ]
-}
-```
+`src-tauri/capabilities/default.json` で必要最小限の権限を設定する。許可するプラグイン権限は `dialog`（フォルダ選択）、`store`（設定保存）、`opener`（外部リンク）に限定する。
 
 ダウンロード先フォルダへのアクセスは `dialog` プラグインのフォルダ選択ダイアログ経由で許可する。ユーザーがダイアログで選択したパスに対してのみ書き込みが可能となり、最小権限の原則に合致する。
+
+詳細は `src-tauri/capabilities/default.json` を参照。
 
 ### 7.2 CSP（Content Security Policy）
 

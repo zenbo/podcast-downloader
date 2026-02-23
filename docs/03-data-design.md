@@ -122,39 +122,7 @@ const MIGRATIONS: Migrations<'_> = Migrations::from_slice(&[
 ]);
 ```
 
-**初期マイグレーション (001_initial.sql)**:
-
-```sql
-CREATE TABLE podcasts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    author TEXT,
-    description TEXT,
-    feed_url TEXT NOT NULL UNIQUE,
-    apple_podcasts_url TEXT,
-    image_url TEXT,
-    last_checked_at TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE episodes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    podcast_id INTEGER NOT NULL,
-    guid TEXT NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT,
-    audio_url TEXT NOT NULL,
-    file_size INTEGER,
-    published_at TEXT NOT NULL,
-    downloaded_at TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (podcast_id) REFERENCES podcasts(id) ON DELETE CASCADE,
-    UNIQUE(podcast_id, guid)
-);
-
-CREATE INDEX idx_episodes_podcast_published ON episodes(podcast_id, published_at);
-```
+マイグレーション SQL の詳細は `src-tauri/migrations/` 配下の各ファイルを参照。
 
 ## 4. アプリケーション設定（JSON）
 
@@ -185,7 +153,7 @@ CREATE INDEX idx_episodes_podcast_published ON episodes(podcast_id, published_at
 
 ### 4.2 デフォルト値
 
-初回起動時、設定ファイルが存在しない場合は以下のデフォルト値で作成する。
+設定ファイルが存在しない場合、初回 `get_settings` 呼び出し時に以下のデフォルト値で遅延生成する。
 
 | キー | デフォルト値 | 備考 |
 |------|-------------|------|
@@ -220,108 +188,22 @@ flowchart TD
     AllNew --> Result
 ```
 
-### 5.2 SQL クエリ例
+### 5.2 実装
 
-**新着エピソードの取得（DL 履歴あり）**:
-
-```sql
-SELECT e.*
-FROM episodes e
-WHERE e.podcast_id = ?
-  AND e.published_at >= (
-    SELECT e2.published_at
-    FROM episodes e2
-    WHERE e2.podcast_id = ?
-      AND e2.downloaded_at IS NOT NULL
-    ORDER BY e2.published_at DESC
-    LIMIT 1
-  )
-  AND e.downloaded_at IS NULL
-ORDER BY e.published_at ASC;
-```
-
-**新着エピソードの取得（DL 履歴なし — 全エピソードが新着）**:
-
-```sql
-SELECT e.*
-FROM episodes e
-WHERE e.podcast_id = ?
-  AND e.downloaded_at IS NULL
-ORDER BY e.published_at ASC;
-```
+新着判定クエリの実装は `src-tauri/src/db/episode.rs` の `get_new_episodes` 関数を参照。
 
 ## 6. データフロー
 
-### 6.1 番組登録時
+各操作のシーケンス図（フロントエンド〜バックエンド〜外部サービス間のやり取り）は 02-architecture.md を参照:
 
-```mermaid
-sequenceDiagram
-    participant User as ユーザー
-    participant UI as フロントエンド
-    participant Rust as Rustバックエンド
-    participant iTunes as iTunes Lookup API
-    participant RSS as RSSフィード
-    participant DB as SQLite
+- **番組登録**: 3.4 Apple Podcasts 登録フロー
+- **新着チェック**: 3.7 新着チェックフロー
+- **ダウンロード**: 3.5 ダウンロードフロー
 
-    User->>UI: Apple Podcasts URLを入力
-    UI->>Rust: register_podcast(url)
-    Rust->>Rust: URLからPodcast IDを抽出
-    Rust->>iTunes: GET /lookup?id={ID}&entity=podcast
-    iTunes-->>Rust: JSON (feedUrl含む)
-    Rust->>RSS: GET {feedUrl}
-    RSS-->>Rust: RSS XML
-    Rust->>Rust: RSSをパース
-    Rust->>DB: INSERT INTO podcasts
-    Rust->>DB: INSERT INTO episodes (一括)
-    Rust-->>UI: 番組情報を返却
-    UI-->>User: 登録完了を表示
-```
+データ操作の要約:
 
-### 6.2 新着チェック時
-
-```mermaid
-sequenceDiagram
-    participant User as ユーザー
-    participant UI as フロントエンド
-    participant Rust as Rustバックエンド
-    participant RSS as RSSフィード
-    participant DB as SQLite
-
-    User->>UI: 新着チェックを実行
-    UI->>Rust: check_new_episodes(podcast_id)
-    Rust->>DB: SELECT feed_url FROM podcasts
-    Rust->>RSS: GET {feed_url}
-    RSS-->>Rust: RSS XML
-    Rust->>Rust: RSSをパース
-    Rust->>DB: 既存エピソードと比較
-    Rust->>DB: INSERT INTO episodes (新規分)
-    Rust->>DB: 新着判定クエリを実行
-    Rust->>DB: UPDATE podcasts SET last_checked_at
-    Rust-->>UI: 新着エピソードリスト
-    UI-->>User: 新着エピソードを表示
-```
-
-### 6.3 ダウンロード時
-
-```mermaid
-sequenceDiagram
-    participant User as ユーザー
-    participant UI as フロントエンド
-    participant Rust as Rustバックエンド
-    participant Store as tauri-plugin-store
-    participant DB as SQLite
-    participant FS as ファイルシステム
-
-    User->>UI: エピソードをDL
-    UI->>Rust: download_episode(episode_id)
-    Rust->>DB: SELECT audio_url, podcast.title FROM episodes JOIN podcasts
-    Rust->>Store: download_dir, character_replacements を取得
-    Rust->>Rust: フォルダ名・ファイル名を生成<br>（文字置換ルール適用）
-    Rust->>FS: フォルダ作成（存在しない場合）
-    Rust->>FS: HTTPダウンロード → ファイル書き込み
-    Note over Rust,UI: Channel APIで進捗を通知
-    Rust-->>UI: 進捗イベント（%）
-    Rust->>DB: UPDATE episodes SET downloaded_at
-    Rust-->>UI: ダウンロード完了
-    UI-->>User: 完了を表示
-```
+| 操作 | DB 書き込み | 備考 |
+|------|-----------|------|
+| 番組登録 | `INSERT INTO podcasts` + `INSERT INTO episodes`（一括） | RSS フィード内の全エピソードを初期挿入 |
+| 新着チェック | `INSERT INTO episodes`（新規分）+ `UPDATE podcasts SET last_checked_at` | guid ベースで重複排除 |
+| ダウンロード | `UPDATE episodes SET downloaded_at` | DL 完了後に記録 |
