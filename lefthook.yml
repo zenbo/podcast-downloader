@@ -8,3 +8,11 @@ pre-commit:
     - name: prettier
       glob: "*.{ts,tsx,js,jsx,json,css,md,yml,yaml}"
       run: pnpm prettier --write {staged_files} && git add {staged_files}
+
+    - name: tsc
+      glob: "*.{ts,tsx}"
+      run: pnpm tsc --noEmit
+
+    - name: vitest
+      glob: "*.{ts,tsx}"
+      run: pnpm test
