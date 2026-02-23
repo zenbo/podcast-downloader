@@ -27,6 +27,7 @@ export function PodcastCard({
       <Checkbox
         checked={checked}
         onCheckedChange={(v) => onCheckedChange(v === true)}
+        disabled={podcast.newEpisodeCount === 0}
       />
 
       <Avatar className="h-12 w-12 shrink-0">

@@ -87,6 +87,7 @@ function EpisodeListPage() {
   }
 
   const isDownloading = downloadingEpisodeId !== null || isBatchDownloading;
+  const hasNewEpisodes = episodes?.some((e) => e.isNew) ?? false;
 
   const statusBarProgress = useMemo(() => {
     if (batchProgress) {
@@ -163,7 +164,7 @@ function EpisodeListPage() {
             variant="outline"
             size="sm"
             onClick={handleBatchDownload}
-            disabled={isDownloading}
+            disabled={isDownloading || !hasNewEpisodes}
           >
             {isBatchDownloading ? (
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
