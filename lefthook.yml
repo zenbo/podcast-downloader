@@ -1,0 +1,10 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: cargo fmt
+      glob: "src-tauri/src/**/*.rs"
+      run: cargo fmt --manifest-path src-tauri/Cargo.toml && git add {staged_files}
+
+    - name: prettier
+      glob: "*.{ts,tsx,js,jsx,json,css,md,yml,yaml}"
+      run: pnpm prettier --write {staged_files} && git add {staged_files}
