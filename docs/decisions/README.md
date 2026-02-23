@@ -29,3 +29,4 @@
 | [ADR-015](adr-015-simplify-default-replacements.md) | 2026-02-23 | デフォルト文字置換ルールの簡素化 → `/` `:` のみ個別ルール、他は fallback に統一 | 採用 |
 | [ADR-016](adr-016-remove-episode-sections.md) | 2026-02-23 | エピソード一覧のセクション分け廃止 → フラットな配信日降順リストに統一 | 採用 |
 | [ADR-017](adr-017-change-app-identifier.md) | 2026-02-23 | アプリ identifier の変更 → GitHub アカウントベースに統一 | 採用 |
+| [ADR-018](adr-018-app-icon-design.md) | 2026-02-23 | アプリアイコンのデザイン方針 → ヘッドホン + 下矢印、フラットデザイン | 採用 |
