@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { FolderOpen, Plus, Trash2, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Check, FolderOpen, Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import type { AppSettings, CharacterReplacement } from "@/types";
-import { selectFolder } from "@/services/settings";
+import { selectFolder, updateSettings } from "@/services/settings";
 import { useSettings, useUpdateSettings } from "@/hooks/use-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +12,6 @@ import { Card } from "@/components/ui/card";
 import { Header } from "@/components/common/Header";
 
 function SettingsPage() {
-  const navigate = useNavigate();
   const { data: settings, isLoading } = useSettings();
   const mutation = useUpdateSettings();
 
@@ -21,6 +19,14 @@ function SettingsPage() {
   const [replacements, setReplacements] = useState<CharacterReplacement[]>([]);
   const [fallback, setFallback] = useState("_");
   const [initialized, setInitialized] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
+    "idle",
+  );
+
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const savedStatusTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const prevSettingsRef = useRef("");
+  const currentSettingsRef = useRef("");
 
   useEffect(() => {
     if (settings && !initialized) {
@@ -28,8 +34,63 @@ function SettingsPage() {
       setReplacements(settings.characterReplacements);
       setFallback(settings.fallbackReplacement);
       setInitialized(true);
+      const json = JSON.stringify(settings);
+      prevSettingsRef.current = json;
+      currentSettingsRef.current = json;
     }
   }, [settings, initialized]);
+
+  // 自動保存（デバウンス 500ms）
+  useEffect(() => {
+    if (!initialized) return;
+
+    const current: AppSettings = {
+      downloadDir,
+      characterReplacements: replacements,
+      fallbackReplacement: fallback,
+    };
+    const json = JSON.stringify(current);
+    currentSettingsRef.current = json;
+
+    if (json === prevSettingsRef.current) return;
+
+    clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      setSaveStatus("saving");
+      mutation.mutate(current, {
+        onSuccess: () => {
+          prevSettingsRef.current = json;
+          setSaveStatus("saved");
+          clearTimeout(savedStatusTimeoutRef.current);
+          savedStatusTimeoutRef.current = setTimeout(
+            () => setSaveStatus("idle"),
+            2000,
+          );
+        },
+        onError: (err) => {
+          toast.error(`設定の保存に失敗しました: ${String(err)}`);
+          setSaveStatus("idle");
+        },
+      });
+    }, 500);
+
+    return () => clearTimeout(saveTimeoutRef.current);
+  }, [initialized, downloadDir, replacements, fallback]);
+
+  // アンマウント時に未保存の変更をフラッシュ
+  useEffect(() => {
+    return () => {
+      clearTimeout(saveTimeoutRef.current);
+      clearTimeout(savedStatusTimeoutRef.current);
+      if (
+        currentSettingsRef.current &&
+        currentSettingsRef.current !== prevSettingsRef.current
+      ) {
+        const pending = JSON.parse(currentSettingsRef.current) as AppSettings;
+        updateSettings(pending).catch(() => {});
+      }
+    };
+  }, []);
 
   async function handleSelectFolder() {
     try {
@@ -60,24 +121,6 @@ function SettingsPage() {
     );
   }
 
-  function handleSave() {
-    const newSettings: AppSettings = {
-      downloadDir,
-      characterReplacements: replacements,
-      fallbackReplacement: fallback,
-    };
-
-    mutation.mutate(newSettings, {
-      onSuccess: () => {
-        toast.success("設定を保存しました");
-        navigate("/");
-      },
-      onError: (err) => {
-        toast.error(String(err));
-      },
-    });
-  }
-
   if (isLoading) {
     return (
       <div className="flex flex-col h-screen">
@@ -91,7 +134,20 @@ function SettingsPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <Header backTo="/" />
+      <Header backTo="/">
+        {saveStatus === "saving" && (
+          <span className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            保存中...
+          </span>
+        )}
+        {saveStatus === "saved" && (
+          <span className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Check className="h-3.5 w-3.5" />
+            保存済み
+          </span>
+        )}
+      </Header>
 
       <main className="flex-1 overflow-auto p-4">
         <div className="max-w-2xl mx-auto space-y-6">
@@ -179,18 +235,6 @@ function SettingsPage() {
             />
           </section>
 
-          {/* アクションボタン */}
-          <div className="flex items-center justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => navigate("/")}>
-              キャンセル
-            </Button>
-            <Button onClick={handleSave} disabled={mutation.isPending}>
-              {mutation.isPending && (
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-              )}
-              保存
-            </Button>
-          </div>
         </div>
       </main>
     </div>
