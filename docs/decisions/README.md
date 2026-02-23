@@ -25,3 +25,4 @@
 | [ADR-011](adr-011-adr-file-splitting.md) | 2026-02-22 | ADR のファイル分割 → ディレクトリ分割方式 | 採用 |
 | [ADR-012](adr-012-commands-testability.md) | 2026-02-23 | Commands 層のテスタビリティ改善 → トレイト抽象化 + コールバック汎用化 | 採用 |
 | [ADR-013](adr-013-remove-duration.md) | 2026-02-23 | duration フィールドの削除 → feed-rs の MM:SS パースバグ回避 | 採用 |
+| [ADR-014](adr-014-no-visual-regression-testing.md) | 2026-02-23 | ビジュアルリグレッションテストを導入しない → 画面数に対してコスト過大 | 採用 |
