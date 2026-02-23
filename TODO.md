@@ -4,7 +4,7 @@
 
 ### CI/CD
 
-- [ ] **#10 CI/CD パイプラインを構築する**
+- [x] **#10 CI/CD パイプラインを構築する**
   - .github/workflows/ci.yml: PR/push → main
     - Rust lint (cargo clippy, rustfmt)
     - TypeScript lint (ESLint, Prettier)
