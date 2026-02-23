@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   release:
@@ -13,7 +13,7 @@ jobs:
       matrix:
         include:
           - platform: windows-latest
-            args: ''
+            args: ""
           # 将来的に macOS / Linux を追加可能
           # - platform: macos-latest
           #   args: ''
@@ -24,13 +24,19 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
         with:
-          node-version-file: '.node-version'
+          workspaces: "src-tauri -> target"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install
@@ -41,8 +47,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: 'Podcast Downloader ${{ github.ref_name }}'
-          releaseBody: 'See the assets to download this version.'
+          releaseName: "Podcast Downloader ${{ github.ref_name }}"
+          releaseBody: "See the assets to download this version."
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
