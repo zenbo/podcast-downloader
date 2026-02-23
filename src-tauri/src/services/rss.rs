@@ -1,8 +1,50 @@
+use feed_rs::model::Entry;
 use feed_rs::parser;
 
 use crate::error::AppError;
 use crate::models::episode::NewEpisode;
 use crate::models::podcast::PodcastFeed;
+
+const AUDIO_EXTENSIONS: &[&str] = &[".mp3", ".m4a", ".ogg", ".opus", ".wav", ".aac", ".flac"];
+
+/// URL パスが音声ファイル拡張子を持つかを判定する
+fn has_audio_extension(url_path: &str) -> bool {
+    let path_lower = url_path.to_lowercase();
+    AUDIO_EXTENSIONS.iter().any(|ext| path_lower.ends_with(ext))
+}
+
+/// エントリから音声ファイル情報（URL とファイルサイズ）を抽出する
+///
+/// feed-rs が `<media:player>` の URL で `<media:content>` の URL を上書きする問題を回避するため、
+/// URL パスに音声ファイル拡張子を持つエントリを優先選択する。
+fn find_audio_content(entry: &Entry) -> Option<(String, Option<u64>)> {
+    let audio_contents: Vec<_> = entry
+        .media
+        .iter()
+        .flat_map(|m| m.content.iter())
+        .filter(|c| {
+            c.url.is_some()
+                && c.content_type
+                    .as_ref()
+                    .is_some_and(|mt| mt.to_string().starts_with("audio/"))
+        })
+        .collect();
+
+    // audio/* かつ URL パスが音声拡張子を持つエントリを優先
+    // （enclosure 由来のエントリは media:player による上書きが発生しない）
+    for content in &audio_contents {
+        if let Some(url) = &content.url {
+            if has_audio_extension(url.path()) {
+                return Some((url.to_string(), content.size));
+            }
+        }
+    }
+
+    // フォールバック: audio/* の最初のエントリ
+    audio_contents.first().and_then(|c| {
+        c.url.as_ref().map(|u| (u.to_string(), c.size))
+    })
+}
 
 /// バイト列から PodcastFeed をパースする
 pub fn parse_feed(data: &[u8]) -> Result<PodcastFeed, AppError> {
@@ -27,36 +69,29 @@ pub fn parse_feed(data: &[u8]) -> Result<PodcastFeed, AppError> {
         .entries
         .into_iter()
         .filter_map(|entry| {
-            // enclosure（音声ファイル）の URL を取得
-            let audio_url = entry
-                .media
-                .first()
-                .and_then(|m| m.content.first())
-                .and_then(|c| c.url.as_ref())
-                .map(|u| u.to_string())
-                .or_else(|| {
-                    entry
-                        .links
-                        .iter()
-                        .find(|l| {
-                            l.media_type
-                                .as_deref()
-                                .is_some_and(|mt| mt.starts_with("audio/"))
-                        })
-                        .map(|l| l.href.clone())
-                })?;
+            // 音声ファイルの URL とサイズを取得
+            let (audio_url, file_size) = {
+                if let Some((url, size)) = find_audio_content(&entry) {
+                    (url, size.map(|s| s as i64))
+                } else if let Some(link) = entry
+                    .links
+                    .iter()
+                    .find(|l| {
+                        l.media_type
+                            .as_deref()
+                            .is_some_and(|mt| mt.starts_with("audio/"))
+                    })
+                {
+                    (link.href.clone(), link.length.map(|s| s as i64))
+                } else {
+                    return None;
+                }
+            };
 
             let published_at = entry
                 .published
                 .or(entry.updated)
                 .map(|dt| dt.to_rfc3339())?;
-
-            let file_size = entry
-                .media
-                .first()
-                .and_then(|m| m.content.first())
-                .and_then(|c| c.size)
-                .map(|s| s as i64);
 
             Some(NewEpisode {
                 guid: entry.id,
@@ -169,6 +204,57 @@ mod tests {
         assert_eq!(result.episodes[0].guid, "ep1");
         assert_eq!(result.episodes[0].title, "Episode 1");
         assert_eq!(result.episodes[0].file_size, Some(12345678));
+    }
+
+    #[test]
+    fn test_episode_audio_prefers_enclosure_over_media_player() {
+        // Omny FM 等のフィードでは <media:content> 内に <media:player> が入れ子になっており、
+        // feed-rs が media:player の URL で media:content の URL を上書きしてしまう。
+        // enclosure 由来のエントリが正しい音声 URL を持つため、そちらを優先する。
+        let xml = minimal_rss(
+            r#"<item>
+              <guid>ep1</guid>
+              <title>Episode 1</title>
+              <media:content url="https://traffic.omny.fm/d/clips/audio.mp3?utm_source=Podcast" type="audio/mpeg">
+                <media:player url="https://omny.fm/shows/my-show/ep1/embed" />
+              </media:content>
+              <media:content url="https://www.omnycontent.com/d/clips/image.jpg?size=Large" type="image/jpeg" />
+              <enclosure url="https://traffic.omny.fm/d/clips/audio.mp3?utm_source=Podcast" type="audio/mpeg" length="50271640"/>
+              <pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate>
+            </item>"#,
+        );
+
+        let result = parse_feed(xml.as_bytes()).unwrap();
+        assert_eq!(result.episodes.len(), 1);
+        // enclosure の音声 URL が選択され、media:player の URL は使われないこと
+        assert!(
+            result.episodes[0].audio_url.contains("audio.mp3"),
+            "Expected audio URL with .mp3, got: {}",
+            result.episodes[0].audio_url,
+        );
+        assert!(
+            !result.episodes[0].audio_url.contains("/embed"),
+            "audio_url should not be the embed player URL: {}",
+            result.episodes[0].audio_url,
+        );
+        assert_eq!(result.episodes[0].file_size, Some(50271640));
+    }
+
+    #[test]
+    fn test_episode_audio_from_media_content_without_player() {
+        // media:player がない場合は media:content の URL をそのまま使用する
+        let xml = minimal_rss(
+            r#"<item>
+              <guid>ep1</guid>
+              <title>Episode 1</title>
+              <media:content url="https://example.com/audio.mp3" type="audio/mpeg" />
+              <pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate>
+            </item>"#,
+        );
+
+        let result = parse_feed(xml.as_bytes()).unwrap();
+        assert_eq!(result.episodes.len(), 1);
+        assert_eq!(result.episodes[0].audio_url, "https://example.com/audio.mp3");
     }
 
     #[test]

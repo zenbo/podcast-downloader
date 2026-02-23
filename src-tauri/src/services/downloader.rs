@@ -18,6 +18,31 @@ pub async fn download(
     }
 
     let mut response = reqwest::get(audio_url).await?;
+
+    if !response.status().is_success() {
+        return Err(AppError::Other(format!(
+            "ダウンロード失敗: HTTP {} (URL: {})",
+            response.status(),
+            audio_url,
+        )));
+    }
+
+    let content_type = response
+        .headers()
+        .get(reqwest::header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
+    if !content_type.is_empty()
+        && !content_type.starts_with("audio/")
+        && !content_type.starts_with("application/octet-stream")
+    {
+        log::warn!(
+            "予期しない Content-Type: {} (URL: {})",
+            content_type,
+            audio_url,
+        );
+    }
+
     let total_bytes = response.content_length();
 
     let mut file = tokio::fs::File::create(save_path).await?;
