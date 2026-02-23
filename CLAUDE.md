@@ -17,14 +17,14 @@ Windows 11 向け Podcast ダウンロード専用デスクトップアプリ。
 
 作業前に以下のドキュメントを参照すること。
 
-| ドキュメント | 内容 |
-|------------|------|
-| [docs/01-requirements.md](docs/01-requirements.md) | 要件定義書（機能要件・非機能要件） |
-| [docs/02-architecture.md](docs/02-architecture.md) | アーキテクチャ設計書（モジュール構成・Tauriコマンド一覧・IPC設計） |
-| [docs/03-data-design.md](docs/03-data-design.md) | データ設計書（ER図・テーブル定義・新着判定ロジック） |
-| [docs/04-ui-design.md](docs/04-ui-design.md) | 画面設計書（画面遷移・レイアウト・操作フロー） |
-| [docs/05-development-guide.md](docs/05-development-guide.md) | 開発ガイド（環境構築・コマンド・CI/CD） |
-| [docs/decisions/README.md](docs/decisions/README.md) | 設計判断記録の一覧（ADR形式。まずこの一覧を参照し、必要な ADR のみ個別ファイルを読むこと） |
+| ドキュメント                                                 | 内容                                                                                       |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| [docs/01-requirements.md](docs/01-requirements.md)           | 要件定義書（機能要件・非機能要件）                                                         |
+| [docs/02-architecture.md](docs/02-architecture.md)           | アーキテクチャ設計書（モジュール構成・Tauriコマンド一覧・IPC設計）                         |
+| [docs/03-data-design.md](docs/03-data-design.md)             | データ設計書（ER図・テーブル定義・新着判定ロジック）                                       |
+| [docs/04-ui-design.md](docs/04-ui-design.md)                 | 画面設計書（画面遷移・レイアウト・操作フロー）                                             |
+| [docs/05-development-guide.md](docs/05-development-guide.md) | 開発ガイド（環境構築・コマンド・CI/CD）                                                    |
+| [docs/decisions/README.md](docs/decisions/README.md)         | 設計判断記録の一覧（ADR形式。まずこの一覧を参照し、必要な ADR のみ個別ファイルを読むこと） |
 
 ## 開発ルール
 
@@ -43,11 +43,11 @@ Windows 11 向け Podcast ダウンロード専用デスクトップアプリ。
 
 ### ドキュメント間の影響マップ
 
-| 変更対象 | 影響を受けるドキュメント |
-|---------|----------------------|
-| テーブル・カラム定義 | 03-data-design, 02-architecture（コマンド戻り値・フロー図）, 04-ui-design（表示要素） |
-| Tauri コマンド（追加・変更・削除） | 02-architecture（コマンド一覧・フロー図）, 04-ui-design（操作→動作の対応） |
-| データ保存先（SQLite ↔ JSON） | 01-requirements（FR-014 等）, 02-architecture（初期化フロー・クレート）, 03-data-design, 04-ui-design（保存ボタンの動作） |
-| フロントエンドライブラリ | 02-architecture（状態管理・ページ構成）, 04-ui-design（UIフレームワーク）, 05-development-guide（依存関係） |
-| CI/CD・ビルド設定 | 02-architecture（ディレクトリツリー）, 05-development-guide（CI yml・コマンド） |
-| ファイル命名規則 | 02-architecture（3.6節）, 03-data-design（設定スキーマ） |
+| 変更対象                           | 影響を受けるドキュメント                                                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| テーブル・カラム定義               | 03-data-design, 02-architecture（コマンド戻り値・フロー図）, 04-ui-design（表示要素）                                     |
+| Tauri コマンド（追加・変更・削除） | 02-architecture（コマンド一覧・フロー図）, 04-ui-design（操作→動作の対応）                                                |
+| データ保存先（SQLite ↔ JSON）      | 01-requirements（FR-014 等）, 02-architecture（初期化フロー・クレート）, 03-data-design, 04-ui-design（保存ボタンの動作） |
+| フロントエンドライブラリ           | 02-architecture（状態管理・ページ構成）, 04-ui-design（UIフレームワーク）, 05-development-guide（依存関係）               |
+| CI/CD・ビルド設定                  | 02-architecture（ディレクトリツリー）, 05-development-guide（CI yml・コマンド）                                           |
+| ファイル命名規則                   | 02-architecture（3.6節）, 03-data-design（設定スキーマ）                                                                  |

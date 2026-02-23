@@ -22,8 +22,7 @@ export function StatusBar({ progress }: StatusBarProps) {
       <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
         <span className="truncate mr-2">{progress.title}</span>
         <span className="shrink-0">
-          {progress.type === "batch" &&
-            `${progress.completedCount}/${progress.totalCount} · `}
+          {progress.type === "batch" && `${progress.completedCount}/${progress.totalCount} · `}
           {Math.round(progress.percentage)}%
         </span>
       </div>

@@ -4,10 +4,10 @@
 
 データの保存先は2つに分かれる。
 
-| 保存先 | 内容 | 形式 |
-|--------|------|------|
-| SQLite | 番組・エピソード情報 | リレーショナルデータ |
-| JSON ファイル（tauri-plugin-store） | アプリケーション設定（DLフォルダ、文字置換ルール） | key-value |
+| 保存先                              | 内容                                               | 形式                 |
+| ----------------------------------- | -------------------------------------------------- | -------------------- |
+| SQLite                              | 番組・エピソード情報                               | リレーショナルデータ |
+| JSON ファイル（tauri-plugin-store） | アプリケーション設定（DLフォルダ、文字置換ルール） | key-value            |
 
 ## 2. SQLite — テーブル設計
 
@@ -44,33 +44,33 @@ erDiagram
 
 ### 2.2 podcasts — 番組情報
 
-| カラム名 | 型 | 制約 | 由来 | 説明 |
-|---------|-----|------|------|------|
-| id | INTEGER | PRIMARY KEY AUTOINCREMENT | アプリ | 番組 ID |
-| title | TEXT | NOT NULL | RSS `<channel><title>` | 番組タイトル |
-| author | TEXT | | iTunes `<itunes:author>` | 制作者名 |
-| description | TEXT | | RSS `<channel><description>` | 番組の説明 |
-| feed_url | TEXT | NOT NULL, UNIQUE | iTunes Lookup API `feedUrl` | RSS フィード URL |
-| apple_podcasts_url | TEXT | | アプリ（ユーザー入力） | 元の Apple Podcasts Web ページ URL |
-| image_url | TEXT | | iTunes `<itunes:image>` | アートワーク画像 URL |
-| last_checked_at | TEXT | | アプリ | 最終新着チェック日時（ISO 8601） |
-| created_at | TEXT | NOT NULL, DEFAULT CURRENT_TIMESTAMP | アプリ | レコード作成日時 |
-| updated_at | TEXT | NOT NULL, DEFAULT CURRENT_TIMESTAMP | アプリ | レコード更新日時 |
+| カラム名           | 型      | 制約                                | 由来                         | 説明                               |
+| ------------------ | ------- | ----------------------------------- | ---------------------------- | ---------------------------------- |
+| id                 | INTEGER | PRIMARY KEY AUTOINCREMENT           | アプリ                       | 番組 ID                            |
+| title              | TEXT    | NOT NULL                            | RSS `<channel><title>`       | 番組タイトル                       |
+| author             | TEXT    |                                     | iTunes `<itunes:author>`     | 制作者名                           |
+| description        | TEXT    |                                     | RSS `<channel><description>` | 番組の説明                         |
+| feed_url           | TEXT    | NOT NULL, UNIQUE                    | iTunes Lookup API `feedUrl`  | RSS フィード URL                   |
+| apple_podcasts_url | TEXT    |                                     | アプリ（ユーザー入力）       | 元の Apple Podcasts Web ページ URL |
+| image_url          | TEXT    |                                     | iTunes `<itunes:image>`      | アートワーク画像 URL               |
+| last_checked_at    | TEXT    |                                     | アプリ                       | 最終新着チェック日時（ISO 8601）   |
+| created_at         | TEXT    | NOT NULL, DEFAULT CURRENT_TIMESTAMP | アプリ                       | レコード作成日時                   |
+| updated_at         | TEXT    | NOT NULL, DEFAULT CURRENT_TIMESTAMP | アプリ                       | レコード更新日時                   |
 
 ### 2.3 episodes — エピソード情報
 
-| カラム名 | 型 | 制約 | 由来 | 説明 |
-|---------|-----|------|------|------|
-| id | INTEGER | PRIMARY KEY AUTOINCREMENT | アプリ | エピソード ID |
-| podcast_id | INTEGER | NOT NULL, FK → podcasts.id ON DELETE CASCADE | アプリ | 所属番組 |
-| guid | TEXT | NOT NULL | RSS `<item><guid>` | エピソード固有識別子 |
-| title | TEXT | NOT NULL | RSS `<item><title>` | エピソードタイトル |
-| description | TEXT | | RSS `<item><description>` | エピソードの説明 |
-| audio_url | TEXT | NOT NULL | RSS `<item><enclosure url>` | 音声ファイルの URL |
-| file_size | INTEGER | | RSS `<item><enclosure length>` | ファイルサイズ（バイト） |
-| published_at | TEXT | NOT NULL | RSS `<item><pubDate>` | 配信日時（ISO 8601） |
-| downloaded_at | TEXT | | アプリ | DL完了日時（ISO 8601）。NULL = 未DL |
-| created_at | TEXT | NOT NULL, DEFAULT CURRENT_TIMESTAMP | アプリ | レコード作成日時 |
+| カラム名      | 型      | 制約                                         | 由来                           | 説明                                |
+| ------------- | ------- | -------------------------------------------- | ------------------------------ | ----------------------------------- |
+| id            | INTEGER | PRIMARY KEY AUTOINCREMENT                    | アプリ                         | エピソード ID                       |
+| podcast_id    | INTEGER | NOT NULL, FK → podcasts.id ON DELETE CASCADE | アプリ                         | 所属番組                            |
+| guid          | TEXT    | NOT NULL                                     | RSS `<item><guid>`             | エピソード固有識別子                |
+| title         | TEXT    | NOT NULL                                     | RSS `<item><title>`            | エピソードタイトル                  |
+| description   | TEXT    |                                              | RSS `<item><description>`      | エピソードの説明                    |
+| audio_url     | TEXT    | NOT NULL                                     | RSS `<item><enclosure url>`    | 音声ファイルの URL                  |
+| file_size     | INTEGER |                                              | RSS `<item><enclosure length>` | ファイルサイズ（バイト）            |
+| published_at  | TEXT    | NOT NULL                                     | RSS `<item><pubDate>`          | 配信日時（ISO 8601）                |
+| downloaded_at | TEXT    |                                              | アプリ                         | DL完了日時（ISO 8601）。NULL = 未DL |
+| created_at    | TEXT    | NOT NULL, DEFAULT CURRENT_TIMESTAMP          | アプリ                         | レコード作成日時                    |
 
 **ユニーク制約**: UNIQUE(podcast_id, guid)
 
@@ -78,8 +78,8 @@ erDiagram
 
 ### 2.4 インデックス
 
-| インデックス名 | テーブル | カラム | 目的 |
-|--------------|---------|--------|------|
+| インデックス名                 | テーブル | カラム                     | 目的                                 |
+| ------------------------------ | -------- | -------------------------- | ------------------------------------ |
 | idx_episodes_podcast_published | episodes | (podcast_id, published_at) | 番組別のエピソード一覧取得・新着判定 |
 
 ### 2.5 日時の保存形式
@@ -92,10 +92,10 @@ SQLite に専用の日時型はないため、TEXT 型で ISO 8601 形式（例:
 
 SQLite データベースファイルは Tauri の `app_data_dir` に配置する。
 
-| OS | パス |
-|----|------|
+| OS      | パス                                                                       |
+| ------- | -------------------------------------------------------------------------- |
 | Windows | `C:\Users\{user}\AppData\Roaming\podcast-downloader\podcast-downloader.db` |
-| macOS | `~/Library/Application Support/podcast-downloader/podcast-downloader.db` |
+| macOS   | `~/Library/Application Support/podcast-downloader/podcast-downloader.db`   |
 
 アプリ初回起動時にディレクトリとデータベースファイルを自動作成する。
 
@@ -143,23 +143,23 @@ const MIGRATIONS: Migrations<'_> = Migrations::from_slice(&[
 }
 ```
 
-| キー | 型 | 説明 |
-|------|-----|------|
-| `download_dir` | string | ダウンロード先ベースフォルダのパス |
-| `character_replacements` | array | 文字置換ルールの配列。配列の順序が適用順序となる |
-| `character_replacements[].before` | string | 置換前の文字列 |
-| `character_replacements[].after` | string | 置換後の文字列 |
-| `fallback_replacement` | string | 個別ルールに該当しない OS 禁止文字に対する一括置換文字 |
+| キー                              | 型     | 説明                                                   |
+| --------------------------------- | ------ | ------------------------------------------------------ |
+| `download_dir`                    | string | ダウンロード先ベースフォルダのパス                     |
+| `character_replacements`          | array  | 文字置換ルールの配列。配列の順序が適用順序となる       |
+| `character_replacements[].before` | string | 置換前の文字列                                         |
+| `character_replacements[].after`  | string | 置換後の文字列                                         |
+| `fallback_replacement`            | string | 個別ルールに該当しない OS 禁止文字に対する一括置換文字 |
 
 ### 4.2 デフォルト値
 
 設定ファイルが存在しない場合、初回 `get_settings` 呼び出し時に以下のデフォルト値で遅延生成する。
 
-| キー | デフォルト値 | 備考 |
-|------|-------------|------|
-| `download_dir` | （未設定） | 初回DL時にフォルダ選択ダイアログで設定を促す |
-| `character_replacements` | `[{"before":"/","after":"-"},{"before":":","after":"-"}]` | 下記「個別ルールの選定基準」参照 |
-| `fallback_replacement` | `"_"` | 個別ルールに該当しない禁止文字の置換先 |
+| キー                     | デフォルト値                                              | 備考                                         |
+| ------------------------ | --------------------------------------------------------- | -------------------------------------------- |
+| `download_dir`           | （未設定）                                                | 初回DL時にフォルダ選択ダイアログで設定を促す |
+| `character_replacements` | `[{"before":"/","after":"-"},{"before":":","after":"-"}]` | 下記「個別ルールの選定基準」参照             |
+| `fallback_replacement`   | `"_"`                                                     | 個別ルールに該当しない禁止文字の置換先       |
 
 `download_dir` が未設定の状態でダウンロードを実行した場合は、フォルダ選択ダイアログを表示してユーザーに設定を促す。
 
@@ -167,10 +167,10 @@ const MIGRATIONS: Migrations<'_> = Migrations::from_slice(&[
 
 `character_replacements` に個別ルールを設定する文字は、`fallback_replacement` (`_`) では可読性が著しく低下するものに限定する。
 
-| 文字 | after | 理由 |
-|------|-------|------|
-| `/` | `-` | 日付表記 `2024/01/15` → `2024-01-15` の可読性維持 |
-| `:` | `-` | ラベル区切り・時刻表記ともに `-` で許容範囲 |
+| 文字 | after | 理由                                              |
+| ---- | ----- | ------------------------------------------------- |
+| `/`  | `-`   | 日付表記 `2024/01/15` → `2024-01-15` の可読性維持 |
+| `:`  | `-`   | ラベル区切り・時刻表記ともに `-` で許容範囲       |
 
 上記以外の Windows 禁止文字（`?` `"` `<` `>` `|`）は `fallback_replacement` による一括置換に委任する。これにより設定画面の一覧が簡潔になり、単語境界も `_` で保たれる。
 
@@ -202,8 +202,8 @@ flowchart TD
 
 データ操作の要約:
 
-| 操作 | DB 書き込み | 備考 |
-|------|-----------|------|
-| 番組登録 | `INSERT INTO podcasts` + `INSERT INTO episodes`（一括） | RSS フィード内の全エピソードを初期挿入 |
-| 新着チェック | `INSERT INTO episodes`（新規分）+ `UPDATE podcasts SET last_checked_at` | guid ベースで重複排除 |
-| ダウンロード | `UPDATE episodes SET downloaded_at` | DL 完了後に記録 |
+| 操作         | DB 書き込み                                                             | 備考                                   |
+| ------------ | ----------------------------------------------------------------------- | -------------------------------------- |
+| 番組登録     | `INSERT INTO podcasts` + `INSERT INTO episodes`（一括）                 | RSS フィード内の全エピソードを初期挿入 |
+| 新着チェック | `INSERT INTO episodes`（新規分）+ `UPDATE podcasts SET last_checked_at` | guid ベースで重複排除                  |
+| ダウンロード | `UPDATE episodes SET downloaded_at`                                     | DL 完了後に記録                        |

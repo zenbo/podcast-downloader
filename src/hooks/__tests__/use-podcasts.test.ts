@@ -69,14 +69,10 @@ describe("use-podcasts hooks", () => {
       };
       mockRegisterPodcast.mockResolvedValue(mockPodcast);
 
-      const { result, queryClient } = renderHookWithQueryClient(() =>
-        useRegisterPodcast(),
-      );
+      const { result, queryClient } = renderHookWithQueryClient(() => useRegisterPodcast());
       const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
-      result.current.mutate(
-        "https://podcasts.apple.com/podcast/id12345",
-      );
+      result.current.mutate("https://podcasts.apple.com/podcast/id12345");
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(mockRegisterPodcast).toHaveBeenCalledWith(
@@ -92,9 +88,7 @@ describe("use-podcasts hooks", () => {
     it("deletePodcast を呼び出し、成功時に podcasts クエリを無効化する", async () => {
       mockDeletePodcast.mockResolvedValue(undefined);
 
-      const { result, queryClient } = renderHookWithQueryClient(() =>
-        useDeletePodcast(),
-      );
+      const { result, queryClient } = renderHookWithQueryClient(() => useDeletePodcast());
       const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
       result.current.mutate(42);
@@ -114,9 +108,7 @@ describe("use-podcasts hooks", () => {
       ];
       mockCheckAllNew.mockResolvedValue(mockCounts);
 
-      const { result, queryClient } = renderHookWithQueryClient(() =>
-        useCheckAllNew(),
-      );
+      const { result, queryClient } = renderHookWithQueryClient(() => useCheckAllNew());
       const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
       result.current.mutate();

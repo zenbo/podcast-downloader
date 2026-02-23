@@ -4,13 +4,13 @@
 
 ### 1.1 前提条件
 
-| ツール | 用途 | インストール方法 |
-|-------|------|----------------|
-| Homebrew | macOS パッケージマネージャー | [brew.sh](https://brew.sh/) |
-| mise | ランタイムバージョン管理 | `brew install mise` |
-| Rust (rustup) | Rust ツールチェイン | 下記参照 |
-| Node.js | フロントエンドビルド | mise 経由 |
-| pnpm | Node.js パッケージマネージャー | mise 経由 |
+| ツール        | 用途                           | インストール方法            |
+| ------------- | ------------------------------ | --------------------------- |
+| Homebrew      | macOS パッケージマネージャー   | [brew.sh](https://brew.sh/) |
+| mise          | ランタイムバージョン管理       | `brew install mise`         |
+| Rust (rustup) | Rust ツールチェイン            | 下記参照                    |
+| Node.js       | フロントエンドビルド           | mise 経由                   |
+| pnpm          | Node.js パッケージマネージャー | mise 経由                   |
 
 ### 1.2 セットアップ手順
 
@@ -104,34 +104,34 @@ CI の `actions/setup-node` は `.mise.toml` を直接読めないため、`.nod
 
 ### 2.1 開発・ビルド
 
-| コマンド | 説明 |
-|---------|------|
-| `pnpm tauri dev` | 開発サーバー起動（ホットリロード対応） |
+| コマンド           | 説明                                     |
+| ------------------ | ---------------------------------------- |
+| `pnpm tauri dev`   | 開発サーバー起動（ホットリロード対応）   |
 | `pnpm tauri build` | プロダクションビルド（ローカル OS 向け） |
-| `pnpm dev` | フロントエンドのみの開発サーバー起動 |
-| `pnpm build` | フロントエンドのみのビルド |
+| `pnpm dev`         | フロントエンドのみの開発サーバー起動     |
+| `pnpm build`       | フロントエンドのみのビルド               |
 
 ### 2.2 テスト
 
-| コマンド | 説明 |
-|---------|------|
-| `cargo test` | Rust バックエンドの全テスト実行 |
-| `cargo test -- --nocapture` | テスト出力を表示しながら実行 |
-| `pnpm test` | フロントエンドの全テスト実行 |
-| `pnpm test:watch` | フロントエンドテストをウォッチモードで実行 |
+| コマンド                    | 説明                                       |
+| --------------------------- | ------------------------------------------ |
+| `cargo test`                | Rust バックエンドの全テスト実行            |
+| `cargo test -- --nocapture` | テスト出力を表示しながら実行               |
+| `pnpm test`                 | フロントエンドの全テスト実行               |
+| `pnpm test:watch`           | フロントエンドテストをウォッチモードで実行 |
 
 ### 2.3 Lint・フォーマット
 
-| コマンド | 説明 |
-|---------|------|
-| `cargo clippy` | Rust の静的解析 |
+| コマンド                      | 説明                              |
+| ----------------------------- | --------------------------------- |
+| `cargo clippy`                | Rust の静的解析                   |
 | `cargo clippy -- -D warnings` | 警告をエラーとして扱う（CI 相当） |
-| `cargo fmt --check` | Rust のフォーマットチェック |
-| `cargo fmt` | Rust のフォーマット実行 |
-| `pnpm lint` | TypeScript/React の ESLint 実行 |
-| `pnpm lint:fix` | ESLint の自動修正 |
-| `pnpm format:check` | Prettier のフォーマットチェック |
-| `pnpm format` | Prettier のフォーマット実行 |
+| `cargo fmt --check`           | Rust のフォーマットチェック       |
+| `cargo fmt`                   | Rust のフォーマット実行           |
+| `pnpm lint`                   | TypeScript/React の ESLint 実行   |
+| `pnpm lint:fix`               | ESLint の自動修正                 |
+| `pnpm format:check`           | Prettier のフォーマットチェック   |
+| `pnpm format`                 | Prettier のフォーマット実行       |
 
 ### 2.4 ローカルで CI 相当を実行
 

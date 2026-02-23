@@ -121,46 +121,46 @@ graph TD
 
 各層の責務:
 
-| 層 | 責務 | 依存先 |
-|---|------|-------|
+| 層        | 責務                                                                                         | 依存先                         |
+| --------- | -------------------------------------------------------------------------------------------- | ------------------------------ |
 | commands/ | フロントエンドからの IPC リクエストの受付。引数のバリデーション。サービス層・DB 層の呼び出し | services/, db/, models/, error |
-| services/ | ビジネスロジックの実装。外部 API 通信、ファイル操作 | db/, models/, error |
-| db/ | SQLite への CRUD 操作。マイグレーション管理 | models/, error |
-| models/ | データ構造の定義。Serialize/Deserialize 実装 | なし |
-| error | アプリ共通のエラー型。各層のエラーを統合 | なし |
+| services/ | ビジネスロジックの実装。外部 API 通信、ファイル操作                                          | db/, models/, error            |
+| db/       | SQLite への CRUD 操作。マイグレーション管理                                                  | models/, error                 |
+| models/   | データ構造の定義。Serialize/Deserialize 実装                                                 | なし                           |
+| error     | アプリ共通のエラー型。各層のエラーを統合                                                     | なし                           |
 
 ### 3.3 Tauri コマンド一覧
 
 #### 番組関連
 
-| コマンド名 | 引数 | 戻り値 | 説明 |
-|-----------|------|--------|------|
-| `register_podcast` | `url: String` | `Result<Podcast, Error>` | Apple Podcasts URL から番組を登録 |
-| `list_podcasts` | なし | `Result<Vec<PodcastSummary>, Error>` | 番組一覧取得（新着数を含む） |
-| `delete_podcast` | `podcast_id: i64` | `Result<(), Error>` | 番組を削除 |
+| コマンド名         | 引数              | 戻り値                               | 説明                              |
+| ------------------ | ----------------- | ------------------------------------ | --------------------------------- |
+| `register_podcast` | `url: String`     | `Result<Podcast, Error>`             | Apple Podcasts URL から番組を登録 |
+| `list_podcasts`    | なし              | `Result<Vec<PodcastSummary>, Error>` | 番組一覧取得（新着数を含む）      |
+| `delete_podcast`   | `podcast_id: i64` | `Result<(), Error>`                  | 番組を削除                        |
 
 #### エピソード関連
 
-| コマンド名 | 引数 | 戻り値 | 説明 |
-|-----------|------|--------|------|
-| `list_episodes` | `podcast_id: i64` | `Result<Vec<Episode>, Error>` | エピソード一覧取得（DL状態を含む） |
-| `check_new_episodes` | `podcast_id: i64` | `Result<CheckNewResult, Error>` | 新着チェック（新着数・今回発見数を返す） |
-| `check_all_new` | なし | `Result<Vec<PodcastNewCount>, Error>` | 全番組の RSS を再取得し新着状況を返す |
+| コマンド名           | 引数              | 戻り値                                | 説明                                     |
+| -------------------- | ----------------- | ------------------------------------- | ---------------------------------------- |
+| `list_episodes`      | `podcast_id: i64` | `Result<Vec<Episode>, Error>`         | エピソード一覧取得（DL状態を含む）       |
+| `check_new_episodes` | `podcast_id: i64` | `Result<CheckNewResult, Error>`       | 新着チェック（新着数・今回発見数を返す） |
+| `check_all_new`      | なし              | `Result<Vec<PodcastNewCount>, Error>` | 全番組の RSS を再取得し新着状況を返す    |
 
 #### ダウンロード関連
 
-| コマンド名 | 引数 | 戻り値 | 説明 |
-|-----------|------|--------|------|
-| `download_episode` | `episode_id: i64, on_progress: Channel<DownloadProgress>` | `Result<(), Error>` | エピソードをダウンロード（進捗通知付き） |
+| コマンド名           | 引数                                                                 | 戻り値              | 説明                                         |
+| -------------------- | -------------------------------------------------------------------- | ------------------- | -------------------------------------------- |
+| `download_episode`   | `episode_id: i64, on_progress: Channel<DownloadProgress>`            | `Result<(), Error>` | エピソードをダウンロード（進捗通知付き）     |
 | `batch_download_new` | `podcast_ids: Vec<i64>, on_progress: Channel<BatchDownloadProgress>` | `Result<(), Error>` | 選択番組の新着を一括ダウンロード（逐次実行） |
 
 #### 設定関連
 
-| コマンド名 | 引数 | 戻り値 | 説明 |
-|-----------|------|--------|------|
-| `get_settings` | なし | `Result<AppSettings, Error>` | 全設定を取得（tauri-plugin-store） |
-| `update_settings` | `settings: AppSettings` | `Result<(), Error>` | 設定を保存（tauri-plugin-store） |
-| `select_folder` | なし | `Result<Option<String>, Error>` | フォルダ選択ダイアログを表示 |
+| コマンド名        | 引数                    | 戻り値                          | 説明                               |
+| ----------------- | ----------------------- | ------------------------------- | ---------------------------------- |
+| `get_settings`    | なし                    | `Result<AppSettings, Error>`    | 全設定を取得（tauri-plugin-store） |
+| `update_settings` | `settings: AppSettings` | `Result<(), Error>`             | 設定を保存（tauri-plugin-store）   |
+| `select_folder`   | なし                    | `Result<Option<String>, Error>` | フォルダ選択ダイアログを表示       |
 
 ### 3.4 Apple Podcasts 登録フロー
 
@@ -258,22 +258,22 @@ sequenceDiagram
 
 ### 3.8 使用クレート一覧
 
-| クレート | 用途 |
-|---------|------|
-| tauri | アプリケーションフレームワーク |
-| serde / serde_json | シリアライゼーション / デシリアライゼーション |
-| reqwest | HTTP クライアント（iTunes API, RSS取得, ダウンロード） |
-| feed-rs | RSS / Atom フィードのパース |
-| rusqlite | SQLite データベースアクセス |
-| rusqlite_migration | データベースマイグレーション管理 |
-| tokio | 非同期ランタイム（Tauri v2 が使用） |
-| chrono | 日時処理 |
-| regex | 正規表現（URL からの ID 抽出等） |
-| thiserror | エラー型の定義 |
-| async-trait | サービス trait の非同期メソッド定義（ADR-012） |
-| tauri-plugin-store | アプリ設定の永続化（JSON ファイル） |
-| tauri-plugin-dialog | フォルダ選択ダイアログ |
-| log / env_logger | ログ出力 |
+| クレート            | 用途                                                   |
+| ------------------- | ------------------------------------------------------ |
+| tauri               | アプリケーションフレームワーク                         |
+| serde / serde_json  | シリアライゼーション / デシリアライゼーション          |
+| reqwest             | HTTP クライアント（iTunes API, RSS取得, ダウンロード） |
+| feed-rs             | RSS / Atom フィードのパース                            |
+| rusqlite            | SQLite データベースアクセス                            |
+| rusqlite_migration  | データベースマイグレーション管理                       |
+| tokio               | 非同期ランタイム（Tauri v2 が使用）                    |
+| chrono              | 日時処理                                               |
+| regex               | 正規表現（URL からの ID 抽出等）                       |
+| thiserror           | エラー型の定義                                         |
+| async-trait         | サービス trait の非同期メソッド定義（ADR-012）         |
+| tauri-plugin-store  | アプリ設定の永続化（JSON ファイル）                    |
+| tauri-plugin-dialog | フォルダ選択ダイアログ                                 |
+| log / env_logger    | ログ出力                                               |
 
 ## 4. フロントエンド設計 (React + TypeScript)
 
@@ -281,18 +281,18 @@ sequenceDiagram
 
 ルーティングには React Router を使用する。
 
-| ページ | パス | 説明 |
-|-------|------|------|
-| 番組一覧 | `/` | メイン画面。登録済み番組の一覧 |
-| エピソード一覧 | `/podcast/:id` | 番組のエピソード一覧 |
-| 設定 | `/settings` | アプリケーション設定 |
+| ページ         | パス           | 説明                           |
+| -------------- | -------------- | ------------------------------ |
+| 番組一覧       | `/`            | メイン画面。登録済み番組の一覧 |
+| エピソード一覧 | `/podcast/:id` | 番組のエピソード一覧           |
+| 設定           | `/settings`    | アプリケーション設定           |
 
 ### 4.2 状態管理方針
 
-| 状態の種類 | 管理方法 | 用途 |
-|-----------|---------|------|
-| サーバー状態 | TanStack Query | 番組一覧、エピソード一覧など DB から取得するデータ |
-| UI 状態 | useState | ダイアログ表示フラグ、フォーム入力値、ダウンロード進捗など |
+| 状態の種類   | 管理方法       | 用途                                                       |
+| ------------ | -------------- | ---------------------------------------------------------- |
+| サーバー状態 | TanStack Query | 番組一覧、エピソード一覧など DB から取得するデータ         |
+| UI 状態      | useState       | ダイアログ表示フラグ、フォーム入力値、ダウンロード進捗など |
 
 画面数が少なくコンポーネント階層が浅いため、グローバル状態管理ライブラリは導入せず useState + props で管理する。
 
@@ -319,6 +319,7 @@ export async function listPodcasts(): Promise<PodcastSummary[]> {
 Rust の `src-tauri/src/models/` と対応する TypeScript の型を `src/types/` に定義する。Rust 側は `serde(rename_all = "camelCase")` でキャメルケースに変換されるため、TypeScript 側もキャメルケースで定義する。
 
 型の詳細は以下のファイルを参照:
+
 - **Rust**: `src-tauri/src/models/{podcast,episode,settings}.rs`
 - **TypeScript**: `src/types/{podcast,episode,settings,progress}.ts`
 
@@ -379,6 +380,7 @@ sequenceDiagram
 個別ダウンロード（`DownloadProgress`）と一括ダウンロード（`BatchDownloadProgress`）の 2 種類の進捗型を定義している。一括ダウンロードの進捗には、全体の件数・完了件数と現在ダウンロード中のエピソード情報を含む。
 
 型の詳細は以下のファイルを参照:
+
 - **Rust**: `src-tauri/src/models/episode.rs`
 - **TypeScript**: `src/types/progress.ts`
 

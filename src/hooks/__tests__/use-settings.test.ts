@@ -40,9 +40,7 @@ describe("use-settings hooks", () => {
     it("updateSettings を呼び出し、成功時に settings クエリを無効化する", async () => {
       mockUpdateSettings.mockResolvedValue(undefined);
 
-      const { result, queryClient } = renderHookWithQueryClient(() =>
-        useUpdateSettings(),
-      );
+      const { result, queryClient } = renderHookWithQueryClient(() => useUpdateSettings());
       const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
       const newSettings: AppSettings = {

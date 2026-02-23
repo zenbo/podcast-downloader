@@ -27,13 +27,9 @@ function EpisodeListPage() {
   const { data: episodes, isLoading, error } = useEpisodes(podcastId);
   const checkNew = useCheckNewEpisodes();
 
-  const [downloadingEpisodeId, setDownloadingEpisodeId] = useState<
-    number | null
-  >(null);
-  const [singleProgress, setSingleProgress] =
-    useState<DownloadProgress | null>(null);
-  const [batchProgress, setBatchProgress] =
-    useState<BatchDownloadProgress | null>(null);
+  const [downloadingEpisodeId, setDownloadingEpisodeId] = useState<number | null>(null);
+  const [singleProgress, setSingleProgress] = useState<DownloadProgress | null>(null);
+  const [batchProgress, setBatchProgress] = useState<BatchDownloadProgress | null>(null);
   const [isBatchDownloading, setIsBatchDownloading] = useState(false);
 
   async function handleDownload(episodeId: number) {
@@ -75,9 +71,7 @@ function EpisodeListPage() {
     checkNew.mutate(podcastId, {
       onSuccess: (result) => {
         if (result.newlyFoundCount > 0) {
-          toast.success(
-            `${result.newlyFoundCount} 件の新着エピソードが見つかりました`,
-          );
+          toast.success(`${result.newlyFoundCount} 件の新着エピソードが見つかりました`);
         } else {
           toast("新着エピソードはありません");
         }
@@ -104,8 +98,7 @@ function EpisodeListPage() {
     if (singleProgress) {
       return {
         type: "single" as const,
-        title:
-          episodes?.find((e) => e.id === singleProgress.episodeId)?.title ?? "",
+        title: episodes?.find((e) => e.id === singleProgress.episodeId)?.title ?? "",
         percentage: singleProgress.percentage ?? 0,
       };
     }
@@ -134,17 +127,13 @@ function EpisodeListPage() {
         {podcast && (
           <div className="flex items-center gap-3 mb-4">
             <Avatar className="h-16 w-16 shrink-0">
-              {podcast.imageUrl && (
-                <AvatarImage src={podcast.imageUrl} alt={podcast.title} />
-              )}
+              {podcast.imageUrl && <AvatarImage src={podcast.imageUrl} alt={podcast.title} />}
               <AvatarFallback>{podcast.title.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
               <h2 className="text-lg font-bold truncate">{podcast.title}</h2>
               {podcast.author && (
-                <p className="text-sm text-muted-foreground truncate">
-                  {podcast.author}
-                </p>
+                <p className="text-sm text-muted-foreground truncate">{podcast.author}</p>
               )}
             </div>
           </div>
@@ -157,9 +146,7 @@ function EpisodeListPage() {
             onClick={handleCheckNew}
             disabled={checkNew.isPending}
           >
-            <RefreshCw
-              className={`mr-1.5 h-4 w-4 ${checkNew.isPending ? "animate-spin" : ""}`}
-            />
+            <RefreshCw className={`mr-1.5 h-4 w-4 ${checkNew.isPending ? "animate-spin" : ""}`} />
             新着をチェック
           </Button>
           <Button
@@ -183,14 +170,10 @@ function EpisodeListPage() {
           </div>
         )}
 
-        {error && (
-          <p className="text-center py-12 text-destructive">{String(error)}</p>
-        )}
+        {error && <p className="text-center py-12 text-destructive">{String(error)}</p>}
 
         {episodes && episodes.length === 0 && (
-          <p className="text-center py-12 text-muted-foreground">
-            エピソードがありません
-          </p>
+          <p className="text-center py-12 text-muted-foreground">エピソードがありません</p>
         )}
 
         {episodes && episodes.length > 0 && (

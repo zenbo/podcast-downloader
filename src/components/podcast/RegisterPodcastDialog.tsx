@@ -21,10 +21,7 @@ interface RegisterPodcastDialogProps {
 
 const PODCAST_ID_PATTERN = /id\d+/;
 
-export function RegisterPodcastDialog({
-  open,
-  onOpenChange,
-}: RegisterPodcastDialogProps) {
+export function RegisterPodcastDialog({ open, onOpenChange }: RegisterPodcastDialogProps) {
   const [url, setUrl] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
   const mutation = useRegisterPodcast();
@@ -67,8 +64,7 @@ export function RegisterPodcastDialog({
     onOpenChange(nextOpen);
   }
 
-  const errorMessage =
-    validationError ?? (mutation.error ? String(mutation.error) : null);
+  const errorMessage = validationError ?? (mutation.error ? String(mutation.error) : null);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -76,9 +72,7 @@ export function RegisterPodcastDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>番組を追加</DialogTitle>
-            <DialogDescription>
-              Apple Podcasts の URL を入力してください
-            </DialogDescription>
+            <DialogDescription>Apple Podcasts の URL を入力してください</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Label htmlFor="podcast-url" className="mb-2 block">
@@ -92,9 +86,7 @@ export function RegisterPodcastDialog({
               onChange={(e) => setUrl(e.target.value)}
               disabled={mutation.isPending}
             />
-            {errorMessage && (
-              <p className="mt-2 text-sm text-destructive">{errorMessage}</p>
-            )}
+            {errorMessage && <p className="mt-2 text-sm text-destructive">{errorMessage}</p>}
           </div>
           <DialogFooter>
             <Button
@@ -106,9 +98,7 @@ export function RegisterPodcastDialog({
               キャンセル
             </Button>
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending && (
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-              )}
+              {mutation.isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
               登録
             </Button>
           </DialogFooter>

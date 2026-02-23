@@ -1,9 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  listPodcasts,
-  registerPodcast,
-  deletePodcast,
-} from "@/services/podcast";
+import { listPodcasts, registerPodcast, deletePodcast } from "@/services/podcast";
 import { checkAllNew } from "@/services/episode";
 
 export const podcastKeys = {

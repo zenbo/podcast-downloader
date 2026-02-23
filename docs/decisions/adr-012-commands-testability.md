@@ -64,6 +64,6 @@ Rust 1.75 以降 `async fn` in traits は安定だが、`dyn Trait` での動的
 - `src-tauri/src/services/traits.rs` — 新規（トレイト定義）
 - `src-tauri/src/services/real.rs` — 新規（本番実装）
 - `src-tauri/src/db/podcast.rs` — `list_all()` 追加
-- `src-tauri/src/commands/*.rs` — ServiceContainer 導入、_impl パターン
+- `src-tauri/src/commands/*.rs` — ServiceContainer 導入、\_impl パターン
 - `src-tauri/src/lib.rs` — ServiceContainer の State 登録
 - `src-tauri/Cargo.toml` — `async-trait` 依存追加

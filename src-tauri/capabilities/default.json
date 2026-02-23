@@ -3,10 +3,5 @@
   "identifier": "default",
   "description": "Podcast Downloader default capabilities",
   "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "opener:default",
-    "dialog:default",
-    "store:default"
-  ]
+  "permissions": ["core:default", "opener:default", "dialog:default", "store:default"]
 }

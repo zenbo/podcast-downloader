@@ -23,7 +23,9 @@ export function PodcastCard({
   onNavigate,
 }: PodcastCardProps) {
   return (
-    <Card className={cn("flex-row items-center gap-3 p-3", checked && "border-primary/50 bg-primary/5")}>
+    <Card
+      className={cn("flex-row items-center gap-3 p-3", checked && "border-primary/50 bg-primary/5")}
+    >
       <Checkbox
         checked={checked}
         onCheckedChange={(v) => onCheckedChange(v === true)}
@@ -44,9 +46,7 @@ export function PodcastCard({
           {podcast.title}
         </button>
         {podcast.author && (
-          <p className="text-xs text-muted-foreground truncate">
-            {podcast.author}
-          </p>
+          <p className="text-xs text-muted-foreground truncate">{podcast.author}</p>
         )}
       </div>
 

@@ -19,9 +19,7 @@ function SettingsPage() {
   const [replacements, setReplacements] = useState<CharacterReplacement[]>([]);
   const [fallback, setFallback] = useState("_");
   const [initialized, setInitialized] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
-    "idle",
-  );
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const savedStatusTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -62,10 +60,7 @@ function SettingsPage() {
           prevSettingsRef.current = json;
           setSaveStatus("saved");
           clearTimeout(savedStatusTimeoutRef.current);
-          savedStatusTimeoutRef.current = setTimeout(
-            () => setSaveStatus("idle"),
-            2000,
-          );
+          savedStatusTimeoutRef.current = setTimeout(() => setSaveStatus("idle"), 2000);
         },
         onError: (err) => {
           toast.error(`設定の保存に失敗しました: ${String(err)}`);
@@ -82,10 +77,7 @@ function SettingsPage() {
     return () => {
       clearTimeout(saveTimeoutRef.current);
       clearTimeout(savedStatusTimeoutRef.current);
-      if (
-        currentSettingsRef.current &&
-        currentSettingsRef.current !== prevSettingsRef.current
-      ) {
+      if (currentSettingsRef.current && currentSettingsRef.current !== prevSettingsRef.current) {
         const pending = JSON.parse(currentSettingsRef.current) as AppSettings;
         updateSettings(pending).catch(() => {});
       }
@@ -111,14 +103,8 @@ function SettingsPage() {
     setReplacements((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function updateRule(
-    index: number,
-    field: keyof CharacterReplacement,
-    value: string,
-  ) {
-    setReplacements((prev) =>
-      prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)),
-    );
+  function updateRule(index: number, field: keyof CharacterReplacement, value: string) {
+    setReplacements((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
   }
 
   if (isLoading) {
@@ -153,16 +139,9 @@ function SettingsPage() {
         <div className="max-w-2xl mx-auto space-y-6">
           {/* ダウンロードフォルダ */}
           <section>
-            <Label className="mb-2 block text-base font-semibold">
-              ダウンロード先フォルダ
-            </Label>
+            <Label className="mb-2 block text-base font-semibold">ダウンロード先フォルダ</Label>
             <div className="flex items-center gap-2">
-              <Input
-                readOnly
-                value={downloadDir ?? ""}
-                placeholder="未設定"
-                className="flex-1"
-              />
+              <Input readOnly value={downloadDir ?? ""} placeholder="未設定" className="flex-1" />
               <Button variant="outline" onClick={handleSelectFolder}>
                 <FolderOpen className="mr-1.5 h-4 w-4" />
                 選択
@@ -172,9 +151,7 @@ function SettingsPage() {
 
           {/* 文字置換ルール */}
           <section>
-            <Label className="mb-2 block text-base font-semibold">
-              文字置換ルール
-            </Label>
+            <Label className="mb-2 block text-base font-semibold">文字置換ルール</Label>
             <p className="text-sm text-muted-foreground mb-3">
               ファイル名に使えない文字を置換するルールです。上から順に適用されます。
             </p>
@@ -205,12 +182,7 @@ function SettingsPage() {
                 </Card>
               ))}
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2"
-              onClick={addRule}
-            >
+            <Button variant="outline" size="sm" className="mt-2" onClick={addRule}>
               <Plus className="mr-1.5 h-4 w-4" />
               ルールを追加
             </Button>
@@ -218,10 +190,7 @@ function SettingsPage() {
 
           {/* フォールバック置換文字 */}
           <section>
-            <Label
-              htmlFor="fallback"
-              className="mb-2 block text-base font-semibold"
-            >
+            <Label htmlFor="fallback" className="mb-2 block text-base font-semibold">
               フォールバック置換文字
             </Label>
             <p className="text-sm text-muted-foreground mb-2">
@@ -234,7 +203,6 @@ function SettingsPage() {
               className="w-24"
             />
           </section>
-
         </div>
       </main>
     </div>

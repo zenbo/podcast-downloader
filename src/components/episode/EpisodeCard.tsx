@@ -13,11 +13,7 @@ function formatDate(iso: string): string {
   return iso.slice(0, 10);
 }
 
-export function EpisodeCard({
-  episode,
-  isDownloading,
-  onDownload,
-}: EpisodeCardProps) {
+export function EpisodeCard({ episode, isDownloading, onDownload }: EpisodeCardProps) {
   const isDownloaded = episode.downloadedAt !== null;
 
   return (
@@ -34,9 +30,7 @@ export function EpisodeCard({
 
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium truncate">{episode.title}</p>
-        <p className="text-xs text-muted-foreground">
-          {formatDate(episode.publishedAt)}
-        </p>
+        <p className="text-xs text-muted-foreground">{formatDate(episode.publishedAt)}</p>
       </div>
 
       <Button

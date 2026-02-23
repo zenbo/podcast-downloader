@@ -39,18 +39,12 @@ export function DeletePodcastDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>番組を削除</AlertDialogTitle>
           <AlertDialogDescription>
-            「{podcastTitle}」を削除しますか？
-            関連するエピソード情報もすべて削除されます。
+            「{podcastTitle}」を削除しますか？ 関連するエピソード情報もすべて削除されます。
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={mutation.isPending}>
-            キャンセル
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleDelete}
-            disabled={mutation.isPending}
-          >
+          <AlertDialogCancel disabled={mutation.isPending}>キャンセル</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete} disabled={mutation.isPending}>
             削除
           </AlertDialogAction>
         </AlertDialogFooter>

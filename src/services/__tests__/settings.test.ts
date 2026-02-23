@@ -1,10 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { invoke } from "@tauri-apps/api/core";
-import {
-  getSettings,
-  updateSettings,
-  selectFolder,
-} from "@/services/settings";
+import { getSettings, updateSettings, selectFolder } from "@/services/settings";
 import type { AppSettings } from "@/types";
 
 const mockInvoke = vi.mocked(invoke);

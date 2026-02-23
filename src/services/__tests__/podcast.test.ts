@@ -26,9 +26,7 @@ describe("podcast service", () => {
       };
       mockInvoke.mockResolvedValue(mockPodcast);
 
-      const result = await registerPodcast(
-        "https://podcasts.apple.com/podcast/id12345",
-      );
+      const result = await registerPodcast("https://podcasts.apple.com/podcast/id12345");
 
       expect(mockInvoke).toHaveBeenCalledWith("register_podcast", {
         url: "https://podcasts.apple.com/podcast/id12345",

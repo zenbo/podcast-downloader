@@ -26,8 +26,7 @@ function PodcastListPage() {
     id: number;
     title: string;
   } | null>(null);
-  const [batchProgress, setBatchProgress] =
-    useState<BatchDownloadProgress | null>(null);
+  const [batchProgress, setBatchProgress] = useState<BatchDownloadProgress | null>(null);
   const [isBatchDownloading, setIsBatchDownloading] = useState(false);
 
   function handleCheckedChange(podcastId: number, checked: boolean) {
@@ -87,9 +86,7 @@ function PodcastListPage() {
           onClick={handleCheckAllNew}
           disabled={checkAllNew.isPending}
         >
-          <RefreshCw
-            className={`mr-1.5 h-4 w-4 ${checkAllNew.isPending ? "animate-spin" : ""}`}
-          />
+          <RefreshCw className={`mr-1.5 h-4 w-4 ${checkAllNew.isPending ? "animate-spin" : ""}`} />
           全新着チェック
         </Button>
       </Header>
@@ -120,19 +117,12 @@ function PodcastListPage() {
           </div>
         )}
 
-        {error && (
-          <p className="text-center py-12 text-destructive">
-            {String(error)}
-          </p>
-        )}
+        {error && <p className="text-center py-12 text-destructive">{String(error)}</p>}
 
         {podcasts && podcasts.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
             <p className="mb-2">番組がまだ登録されていません</p>
-            <Button
-              variant="outline"
-              onClick={() => setRegisterDialogOpen(true)}
-            >
+            <Button variant="outline" onClick={() => setRegisterDialogOpen(true)}>
               <Plus className="mr-1.5 h-4 w-4" />
               番組を追加
             </Button>
@@ -146,12 +136,8 @@ function PodcastListPage() {
                 key={podcast.id}
                 podcast={podcast}
                 checked={selectedIds.has(podcast.id)}
-                onCheckedChange={(checked) =>
-                  handleCheckedChange(podcast.id, checked)
-                }
-                onDelete={() =>
-                  setDeleteTarget({ id: podcast.id, title: podcast.title })
-                }
+                onCheckedChange={(checked) => handleCheckedChange(podcast.id, checked)}
+                onDelete={() => setDeleteTarget({ id: podcast.id, title: podcast.title })}
                 onNavigate={() => navigate(`/podcast/${podcast.id}`)}
               />
             ))}
@@ -173,10 +159,7 @@ function PodcastListPage() {
         }
       />
 
-      <RegisterPodcastDialog
-        open={registerDialogOpen}
-        onOpenChange={setRegisterDialogOpen}
-      />
+      <RegisterPodcastDialog open={registerDialogOpen} onOpenChange={setRegisterDialogOpen} />
 
       <DeletePodcastDialog
         open={deleteTarget !== null}

@@ -1,9 +1,9 @@
 # ADR-010: データ保存方式の簡素化
 
-| 項目 | 値 |
-|------|-----|
-| 日付 | 2026-02-22 |
-| ステータス | 採用 |
+| 項目       | 値         |
+| ---------- | ---------- |
+| 日付       | 2026-02-22 |
+| ステータス | 採用       |
 
 ## コンテキスト
 
@@ -11,13 +11,13 @@
 
 ## 変更内容
 
-| テーブル | 変更前 | 変更後 |
-|---------|--------|--------|
-| podcasts | SQLite | SQLite（変更なし） |
-| episodes | SQLite | SQLite（`downloaded_at` カラム追加） |
-| download_history | SQLite | **廃止** — episodes.downloaded_at で代替 |
-| settings | SQLite（key-value） | **廃止** — tauri-plugin-store（JSON）へ移行 |
-| character_replacements | SQLite | **廃止** — tauri-plugin-store（JSON）へ移行 |
+| テーブル               | 変更前              | 変更後                                      |
+| ---------------------- | ------------------- | ------------------------------------------- |
+| podcasts               | SQLite              | SQLite（変更なし）                          |
+| episodes               | SQLite              | SQLite（`downloaded_at` カラム追加）        |
+| download_history       | SQLite              | **廃止** — episodes.downloaded_at で代替    |
+| settings               | SQLite（key-value） | **廃止** — tauri-plugin-store（JSON）へ移行 |
+| character_replacements | SQLite              | **廃止** — tauri-plugin-store（JSON）へ移行 |
 
 ## 決定
 

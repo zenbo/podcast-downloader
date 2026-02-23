@@ -7,9 +7,7 @@ export async function listEpisodes(podcastId: number): Promise<Episode[]> {
 }
 
 /** 番組の新着エピソードをチェックする */
-export async function checkNewEpisodes(
-  podcastId: number,
-): Promise<CheckNewResult> {
+export async function checkNewEpisodes(podcastId: number): Promise<CheckNewResult> {
   return invoke<CheckNewResult>("check_new_episodes", { podcastId });
 }
 

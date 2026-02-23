@@ -11,16 +11,16 @@ Podcast の音声ファイルをローカルにダウンロードし、オフラ
 
 ## 技術スタック
 
-| カテゴリ | 技術 |
-|---------|------|
-| アプリフレームワーク | [Tauri v2](https://v2.tauri.app/) |
-| バックエンド | Rust |
-| フロントエンド | React + TypeScript |
-| ビルドツール | Vite |
-| UI | Tailwind CSS + shadcn/ui |
-| データベース | SQLite (rusqlite) |
-| パッケージマネージャー | pnpm |
-| CI/CD | GitHub Actions |
+| カテゴリ               | 技術                              |
+| ---------------------- | --------------------------------- |
+| アプリフレームワーク   | [Tauri v2](https://v2.tauri.app/) |
+| バックエンド           | Rust                              |
+| フロントエンド         | React + TypeScript                |
+| ビルドツール           | Vite                              |
+| UI                     | Tailwind CSS + shadcn/ui          |
+| データベース           | SQLite (rusqlite)                 |
+| パッケージマネージャー | pnpm                              |
+| CI/CD                  | GitHub Actions                    |
 
 ## 対象プラットフォーム
 

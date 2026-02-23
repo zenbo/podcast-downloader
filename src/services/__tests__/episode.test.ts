@@ -1,10 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { invoke } from "@tauri-apps/api/core";
-import {
-  listEpisodes,
-  checkNewEpisodes,
-  checkAllNew,
-} from "@/services/episode";
+import { listEpisodes, checkNewEpisodes, checkAllNew } from "@/services/episode";
 import type { Episode, PodcastNewCount } from "@/types";
 
 const mockInvoke = vi.mocked(invoke);

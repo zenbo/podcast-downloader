@@ -50,9 +50,7 @@ describe("use-episodes hooks", () => {
     it("checkNewEpisodes を呼び出し、成功時に episodes と podcasts クエリを無効化する", async () => {
       mockCheckNewEpisodes.mockResolvedValue({ newCount: 0, newlyFoundCount: 0 });
 
-      const { result, queryClient } = renderHookWithQueryClient(() =>
-        useCheckNewEpisodes(),
-      );
+      const { result, queryClient } = renderHookWithQueryClient(() => useCheckNewEpisodes());
       const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
       result.current.mutate(10);

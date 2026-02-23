@@ -4,8 +4,7 @@ import { podcastKeys } from "@/hooks/use-podcasts";
 
 export const episodeKeys = {
   all: ["episodes"] as const,
-  list: (podcastId: number) =>
-    [...episodeKeys.all, "list", podcastId] as const,
+  list: (podcastId: number) => [...episodeKeys.all, "list", podcastId] as const,
 };
 
 export function useEpisodes(podcastId: number) {
