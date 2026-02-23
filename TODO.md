@@ -31,6 +31,7 @@
 #20 エピソード一覧のセクション分け廃止 ← 独立して着手可能
 #21 番組カードのレイアウト修正        ← 独立して着手可能
 #22 アプリ identifier の変更          ← 独立して着手可能
+#23 エピソード新着マークの正確化       ← 独立して着手可能
 ```
 
 ## タスク一覧
@@ -194,7 +195,7 @@
     - 03-data-design.md: デフォルト値テーブルの更新、after 選定基準の追記
   - ADR を作成する
 
-- [ ] **#20 エピソード一覧画面のセクション分けを廃止する**
+- [x] **#20 エピソード一覧画面のセクション分けを廃止する**
   - 経緯: フロントエンドの「新着」判定（`downloadedAt === null`）がバックエンドの `get_new_episodes` ロジック（最後にDLしたエピソードの配信日以降かつ未DL）と異なり、意図しないエピソードが新着扱いになる。また、DL状態でセクション分けすると配信日順の一覧性が損なわれる
   - 方針:
     - 「新着エピソード」「過去のエピソード」のセクション分けを廃止し、フラットな配信日降順リストにする
@@ -222,3 +223,18 @@
   - 影響範囲:
     - src-tauri/tauri.conf.json: `identifier` フィールド
     - 既存の設定ファイル・DB の保存先ディレクトリ名が変わるため、既存データは引き継がれない点に注意（開発段階のため問題なし）
+
+### UI 改善
+
+- [ ] **#23 エピソード新着マークをバックエンド判定に基づいて表示する**
+  - 経緯: #20 でセクション分けを廃止した際、未DL=新着（青丸）という不正確なマーク表示も削除した。しかし新着マーク自体はあった方がよい
+  - 方針:
+    - `list_episodes` コマンドで `get_new_episodes` の結果と照合し、Episode に `is_new` フラグを付与する
+    - フロントエンドの Episode 型に `isNew: boolean` を追加
+    - EpisodeCard で `isNew` が true の場合に青丸マークを表示する
+  - 影響範囲:
+    - src-tauri/src/models/episode.rs: Episode に `is_new` フィールド追加
+    - src-tauri/src/db/episode.rs: `row_to_episode` でデフォルト false
+    - src-tauri/src/commands/episode.rs: `list_episodes` で新着フラグをセット
+    - src/types/episode.ts: `isNew` 追加
+    - src/components/episode/EpisodeCard.tsx: 新着マーク表示復活

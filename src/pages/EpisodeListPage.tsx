@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, Download, Loader2 } from "lucide-react";
@@ -36,14 +36,6 @@ function EpisodeListPage() {
     useState<BatchDownloadProgress | null>(null);
   const [isBatchDownloading, setIsBatchDownloading] = useState(false);
 
-  const { newEpisodes, pastEpisodes } = useMemo(() => {
-    if (!episodes) return { newEpisodes: [], pastEpisodes: [] };
-    return {
-      newEpisodes: episodes.filter((e) => e.downloadedAt === null),
-      pastEpisodes: episodes.filter((e) => e.downloadedAt !== null),
-    };
-  }, [episodes]);
-
   async function handleDownload(episodeId: number) {
     setDownloadingEpisodeId(episodeId);
     try {
@@ -61,8 +53,6 @@ function EpisodeListPage() {
   }
 
   async function handleBatchDownload() {
-    if (newEpisodes.length === 0) return;
-
     setIsBatchDownloading(true);
     try {
       await batchDownloadNew([podcastId], (progress) => {
@@ -170,7 +160,7 @@ function EpisodeListPage() {
             variant="outline"
             size="sm"
             onClick={handleBatchDownload}
-            disabled={newEpisodes.length === 0 || isDownloading}
+            disabled={isDownloading}
           >
             {isBatchDownloading ? (
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
@@ -197,40 +187,17 @@ function EpisodeListPage() {
           </p>
         )}
 
-        {newEpisodes.length > 0 && (
-          <section className="mb-6">
-            <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-              新着エピソード ({newEpisodes.length})
-            </h3>
-            <div className="space-y-2">
-              {newEpisodes.map((episode) => (
-                <EpisodeCard
-                  key={episode.id}
-                  episode={episode}
-                  isDownloading={downloadingEpisodeId === episode.id}
-                  onDownload={() => handleDownload(episode.id)}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {pastEpisodes.length > 0 && (
-          <section>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-              過去のエピソード ({pastEpisodes.length})
-            </h3>
-            <div className="space-y-2">
-              {pastEpisodes.map((episode) => (
-                <EpisodeCard
-                  key={episode.id}
-                  episode={episode}
-                  isDownloading={downloadingEpisodeId === episode.id}
-                  onDownload={() => handleDownload(episode.id)}
-                />
-              ))}
-            </div>
-          </section>
+        {episodes && episodes.length > 0 && (
+          <div className="space-y-2">
+            {episodes.map((episode) => (
+              <EpisodeCard
+                key={episode.id}
+                episode={episode}
+                isDownloading={downloadingEpisodeId === episode.id}
+                onDownload={() => handleDownload(episode.id)}
+              />
+            ))}
+          </div>
         )}
       </main>
 

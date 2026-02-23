@@ -1,4 +1,4 @@
-import { Download, Loader2, Check, Circle } from "lucide-react";
+import { Download, Loader2, Check } from "lucide-react";
 import type { Episode } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,9 +27,7 @@ export function EpisodeCard({
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
         ) : isDownloaded ? (
           <Check className="h-4 w-4 text-green-600" />
-        ) : (
-          <Circle className="h-3 w-3 fill-blue-500 text-blue-500" />
-        )}
+        ) : null}
       </div>
 
       <div className="min-w-0 flex-1">
