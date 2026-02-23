@@ -135,8 +135,7 @@ pub async fn batch_download_new(
 
         match download_result {
             Ok(()) => {
-                let conn =
-                    state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
+                let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
                 db::episode::mark_downloaded(&conn, episode_id)?;
                 completed_count += 1;
             }
@@ -235,18 +234,12 @@ mod tests {
             let episode_id = episode.id;
 
             let download_result = file_downloader
-                .download(
-                    &episode.audio_url,
-                    &save_path,
-                    episode_id,
-                    Box::new(|_| {}),
-                )
+                .download(&episode.audio_url, &save_path, episode_id, Box::new(|_| {}))
                 .await;
 
             match download_result {
                 Ok(()) => {
-                    let conn =
-                        state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
+                    let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
                     db::episode::mark_downloaded(&conn, episode_id)?;
                     completed_count += 1;
                 }
@@ -380,14 +373,9 @@ mod tests {
             Ok(()),
         ]);
 
-        let result = batch_download_new_workflow(
-            &state,
-            &settings_store,
-            &downloader,
-            &[pid],
-        )
-        .await
-        .unwrap();
+        let result = batch_download_new_workflow(&state, &settings_store, &downloader, &[pid])
+            .await
+            .unwrap();
 
         assert_eq!(result.completed_count, 2);
         assert_eq!(result.failed_count, 1);
@@ -396,10 +384,7 @@ mod tests {
         // DL 済みエピソード数を確認
         let conn = state.0.lock().unwrap();
         let all_eps = db::episode::list_by_podcast(&conn, pid).unwrap();
-        let downloaded_count = all_eps
-            .iter()
-            .filter(|e| e.downloaded_at.is_some())
-            .count();
+        let downloaded_count = all_eps.iter().filter(|e| e.downloaded_at.is_some()).count();
         assert_eq!(downloaded_count, 2);
     }
 
@@ -413,14 +398,9 @@ mod tests {
         let settings_store = MockSettingsStore::with_download_dir("/tmp/podcasts");
         let downloader = MockFileDownloader::always_ok();
 
-        let result = batch_download_new_workflow(
-            &state,
-            &settings_store,
-            &downloader,
-            &[pid],
-        )
-        .await
-        .unwrap();
+        let result = batch_download_new_workflow(&state, &settings_store, &downloader, &[pid])
+            .await
+            .unwrap();
 
         assert_eq!(result.completed_count, 3);
         assert_eq!(result.failed_count, 0);
@@ -446,8 +426,7 @@ mod tests {
     #[test]
     fn test_collect_new_episodes_empty() {
         let state = create_test_db_state();
-        let pid =
-            setup_podcast_in_state(&state, "Empty Show", "https://example.com/feed");
+        let pid = setup_podcast_in_state(&state, "Empty Show", "https://example.com/feed");
 
         let conn = state.0.lock().unwrap();
         let result = collect_new_episodes(&conn, &[pid]).unwrap();

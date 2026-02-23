@@ -31,7 +31,14 @@ pub fn insert(
     conn.execute(
         "INSERT INTO podcasts (title, author, description, feed_url, apple_podcasts_url, image_url)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-        params![title, author, description, feed_url, apple_podcasts_url, image_url],
+        params![
+            title,
+            author,
+            description,
+            feed_url,
+            apple_podcasts_url,
+            image_url
+        ],
     )?;
     let id = conn.last_insert_rowid();
     get(conn, id)
@@ -141,8 +148,26 @@ mod tests {
     #[test]
     fn test_list_with_podcasts() {
         let conn = init_test_db().unwrap();
-        insert(&conn, "Podcast A", None, None, "https://a.com/feed", None, None).unwrap();
-        insert(&conn, "Podcast B", None, None, "https://b.com/feed", None, None).unwrap();
+        insert(
+            &conn,
+            "Podcast A",
+            None,
+            None,
+            "https://a.com/feed",
+            None,
+            None,
+        )
+        .unwrap();
+        insert(
+            &conn,
+            "Podcast B",
+            None,
+            None,
+            "https://b.com/feed",
+            None,
+            None,
+        )
+        .unwrap();
 
         let podcasts = list(&conn).unwrap();
         assert_eq!(podcasts.len(), 2);
@@ -155,7 +180,16 @@ mod tests {
     #[test]
     fn test_delete() {
         let conn = init_test_db().unwrap();
-        let podcast = insert(&conn, "To Delete", None, None, "https://del.com/feed", None, None).unwrap();
+        let podcast = insert(
+            &conn,
+            "To Delete",
+            None,
+            None,
+            "https://del.com/feed",
+            None,
+            None,
+        )
+        .unwrap();
         delete(&conn, podcast.id).unwrap();
 
         let result = get(&conn, podcast.id);
@@ -172,8 +206,26 @@ mod tests {
     #[test]
     fn test_list_all_returns_full_records() {
         let conn = init_test_db().unwrap();
-        insert(&conn, "Podcast A", Some("Author A"), None, "https://a.com/feed", None, None).unwrap();
-        insert(&conn, "Podcast B", None, Some("Desc B"), "https://b.com/feed", None, None).unwrap();
+        insert(
+            &conn,
+            "Podcast A",
+            Some("Author A"),
+            None,
+            "https://a.com/feed",
+            None,
+            None,
+        )
+        .unwrap();
+        insert(
+            &conn,
+            "Podcast B",
+            None,
+            Some("Desc B"),
+            "https://b.com/feed",
+            None,
+            None,
+        )
+        .unwrap();
 
         let podcasts = list_all(&conn).unwrap();
         assert_eq!(podcasts.len(), 2);
@@ -187,7 +239,16 @@ mod tests {
     #[test]
     fn test_update_last_checked() {
         let conn = init_test_db().unwrap();
-        let podcast = insert(&conn, "Check Me", None, None, "https://check.com/feed", None, None).unwrap();
+        let podcast = insert(
+            &conn,
+            "Check Me",
+            None,
+            None,
+            "https://check.com/feed",
+            None,
+            None,
+        )
+        .unwrap();
         assert!(podcast.last_checked_at.is_none());
 
         update_last_checked(&conn, podcast.id).unwrap();

@@ -5,7 +5,7 @@ use std::path::Path;
 use std::sync::{LazyLock, Mutex};
 
 use rusqlite::Connection;
-use rusqlite_migration::{M, Migrations};
+use rusqlite_migration::{Migrations, M};
 
 use crate::error::AppError;
 

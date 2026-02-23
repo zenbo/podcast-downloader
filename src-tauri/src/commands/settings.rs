@@ -8,9 +8,7 @@ use crate::services::traits::ServiceContainer;
 
 /// 設定を取得する
 #[tauri::command]
-pub async fn get_settings(
-    services: State<'_, ServiceContainer>,
-) -> Result<AppSettings, AppError> {
+pub async fn get_settings(services: State<'_, ServiceContainer>) -> Result<AppSettings, AppError> {
     services.settings_store.load_settings()
 }
 

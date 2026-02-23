@@ -42,13 +42,9 @@ impl RssFetcher for MockRssFetcher {
     async fn fetch_and_parse(&self, _feed_url: &str) -> Result<PodcastFeed, AppError> {
         let mut responses = self.responses.lock().unwrap();
         if responses.is_empty() {
-            return Err(AppError::Other(
-                "MockRssFetcher: no more responses".into(),
-            ));
+            return Err(AppError::Other("MockRssFetcher: no more responses".into()));
         }
-        responses
-            .remove(0)
-            .map_err(|msg| AppError::RssParse(msg))
+        responses.remove(0).map_err(|msg| AppError::RssParse(msg))
     }
 }
 
@@ -125,9 +121,7 @@ impl FileDownloader for MockFileDownloader {
                 "MockFileDownloader: no more results".into(),
             ));
         }
-        results
-            .remove(0)
-            .map_err(|msg| AppError::Other(msg))
+        results.remove(0).map_err(|msg| AppError::Other(msg))
     }
 }
 

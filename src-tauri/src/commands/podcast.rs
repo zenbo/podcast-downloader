@@ -57,19 +57,14 @@ pub(crate) fn register_podcast_impl(
 
 /// 番組一覧を取得する（新着エピソード数付き）
 #[tauri::command]
-pub async fn list_podcasts(
-    state: State<'_, DbState>,
-) -> Result<Vec<PodcastSummary>, AppError> {
+pub async fn list_podcasts(state: State<'_, DbState>) -> Result<Vec<PodcastSummary>, AppError> {
     let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
     db::podcast::list(&conn)
 }
 
 /// 番組を削除する
 #[tauri::command]
-pub async fn delete_podcast(
-    podcast_id: i64,
-    state: State<'_, DbState>,
-) -> Result<(), AppError> {
+pub async fn delete_podcast(podcast_id: i64, state: State<'_, DbState>) -> Result<(), AppError> {
     let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
     db::podcast::delete(&conn, podcast_id)
 }

@@ -45,13 +45,9 @@ pub fn insert_bulk(
 }
 
 /// 番組のエピソード一覧を配信日降順で取得する
-pub fn list_by_podcast(
-    conn: &Connection,
-    podcast_id: i64,
-) -> Result<Vec<Episode>, AppError> {
-    let mut stmt = conn.prepare(
-        "SELECT * FROM episodes WHERE podcast_id = ?1 ORDER BY published_at DESC",
-    )?;
+pub fn list_by_podcast(conn: &Connection, podcast_id: i64) -> Result<Vec<Episode>, AppError> {
+    let mut stmt =
+        conn.prepare("SELECT * FROM episodes WHERE podcast_id = ?1 ORDER BY published_at DESC")?;
     let rows = stmt.query_map(params![podcast_id], row_to_episode)?;
     let mut episodes = Vec::new();
     for row in rows {
@@ -80,10 +76,7 @@ pub fn mark_downloaded(conn: &Connection, id: i64) -> Result<(), AppError> {
 ///
 /// - DL 履歴あり: 最後に DL したエピソードの配信日以降かつ未 DL のエピソード
 /// - DL 履歴なし: 全未 DL エピソード
-pub fn get_new_episodes(
-    conn: &Connection,
-    podcast_id: i64,
-) -> Result<Vec<Episode>, AppError> {
+pub fn get_new_episodes(conn: &Connection, podcast_id: i64) -> Result<Vec<Episode>, AppError> {
     let has_downloaded: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM episodes WHERE podcast_id = ?1 AND downloaded_at IS NOT NULL)",
         params![podcast_id],

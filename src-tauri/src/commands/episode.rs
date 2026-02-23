@@ -134,8 +134,7 @@ mod tests {
     #[test]
     fn test_check_new_episodes_impl_inserts_new() {
         let state = create_test_db_state();
-        let podcast_id =
-            setup_podcast_in_state(&state, "Podcast", "https://example.com/feed");
+        let podcast_id = setup_podcast_in_state(&state, "Podcast", "https://example.com/feed");
         let feed = make_feed("Podcast", 3);
 
         let conn = state.0.lock().unwrap();
@@ -149,8 +148,7 @@ mod tests {
     #[test]
     fn test_check_new_episodes_impl_ignores_duplicates() {
         let state = create_test_db_state();
-        let podcast_id =
-            setup_podcast_in_state(&state, "Podcast", "https://example.com/feed");
+        let podcast_id = setup_podcast_in_state(&state, "Podcast", "https://example.com/feed");
 
         let feed1 = make_feed("Podcast", 3);
         let feed2 = make_feed("Podcast", 5); // guid-0 ~ guid-4、うち guid-0~2 は重複
@@ -170,10 +168,8 @@ mod tests {
     #[tokio::test]
     async fn test_check_all_new_impl_success() {
         let state = create_test_db_state();
-        let _pid1 =
-            setup_podcast_in_state(&state, "Podcast A", "https://a.com/feed");
-        let _pid2 =
-            setup_podcast_in_state(&state, "Podcast B", "https://b.com/feed");
+        let _pid1 = setup_podcast_in_state(&state, "Podcast A", "https://a.com/feed");
+        let _pid2 = setup_podcast_in_state(&state, "Podcast B", "https://b.com/feed");
 
         let podcasts = {
             let conn = state.0.lock().unwrap();
@@ -202,10 +198,8 @@ mod tests {
     #[tokio::test]
     async fn test_check_all_new_impl_continues_on_rss_failure() {
         let state = create_test_db_state();
-        let _pid1 =
-            setup_podcast_in_state(&state, "Podcast A", "https://a.com/feed");
-        let _pid2 =
-            setup_podcast_in_state(&state, "Podcast B", "https://b.com/feed");
+        let _pid1 = setup_podcast_in_state(&state, "Podcast A", "https://a.com/feed");
+        let _pid2 = setup_podcast_in_state(&state, "Podcast B", "https://b.com/feed");
 
         let podcasts = {
             let conn = state.0.lock().unwrap();
@@ -231,8 +225,7 @@ mod tests {
     #[tokio::test]
     async fn test_check_all_new_impl_all_failures_returns_empty() {
         let state = create_test_db_state();
-        let _pid1 =
-            setup_podcast_in_state(&state, "Podcast A", "https://a.com/feed");
+        let _pid1 = setup_podcast_in_state(&state, "Podcast A", "https://a.com/feed");
 
         let podcasts = {
             let conn = state.0.lock().unwrap();
@@ -253,9 +246,7 @@ mod tests {
         let state = create_test_db_state();
         let fetcher = MockRssFetcher::always_ok(make_feed("X", 0));
 
-        let results = check_all_new_impl(&state, &fetcher, &[])
-            .await
-            .unwrap();
+        let results = check_all_new_impl(&state, &fetcher, &[]).await.unwrap();
 
         assert!(results.is_empty());
     }

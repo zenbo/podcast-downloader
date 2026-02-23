@@ -41,20 +41,16 @@ fn find_audio_content(entry: &Entry) -> Option<(String, Option<u64>)> {
     }
 
     // フォールバック: audio/* の最初のエントリ
-    audio_contents.first().and_then(|c| {
-        c.url.as_ref().map(|u| (u.to_string(), c.size))
-    })
+    audio_contents
+        .first()
+        .and_then(|c| c.url.as_ref().map(|u| (u.to_string(), c.size)))
 }
 
 /// バイト列から PodcastFeed をパースする
 pub fn parse_feed(data: &[u8]) -> Result<PodcastFeed, AppError> {
-    let feed = parser::parse(data)
-        .map_err(|e| AppError::RssParse(e.to_string()))?;
+    let feed = parser::parse(data).map_err(|e| AppError::RssParse(e.to_string()))?;
 
-    let title = feed
-        .title
-        .map(|t| t.content)
-        .unwrap_or_default();
+    let title = feed.title.map(|t| t.content).unwrap_or_default();
 
     let author = feed.authors.first().map(|a| a.name.clone());
 
@@ -73,15 +69,11 @@ pub fn parse_feed(data: &[u8]) -> Result<PodcastFeed, AppError> {
             let (audio_url, file_size) = {
                 if let Some((url, size)) = find_audio_content(&entry) {
                     (url, size.map(|s| s as i64))
-                } else if let Some(link) = entry
-                    .links
-                    .iter()
-                    .find(|l| {
-                        l.media_type
-                            .as_deref()
-                            .is_some_and(|mt| mt.starts_with("audio/"))
-                    })
-                {
+                } else if let Some(link) = entry.links.iter().find(|l| {
+                    l.media_type
+                        .as_deref()
+                        .is_some_and(|mt| mt.starts_with("audio/"))
+                }) {
                     (link.href.clone(), link.length.map(|s| s as i64))
                 } else {
                     return None;
@@ -153,8 +145,18 @@ mod tests {
             <image><url>https://example.com/logo.png</url></image>
             {}
             {}"#,
-            rss_item("ep1", "Episode 1", "https://example.com/ep1.mp3", "Mon, 01 Jan 2024 00:00:00 GMT"),
-            rss_item("ep2", "Episode 2", "https://example.com/ep2.mp3", "Tue, 02 Jan 2024 00:00:00 GMT"),
+            rss_item(
+                "ep1",
+                "Episode 1",
+                "https://example.com/ep1.mp3",
+                "Mon, 01 Jan 2024 00:00:00 GMT"
+            ),
+            rss_item(
+                "ep2",
+                "Episode 2",
+                "https://example.com/ep2.mp3",
+                "Tue, 02 Jan 2024 00:00:00 GMT"
+            ),
         ));
 
         let result = parse_feed(xml.as_bytes()).unwrap();
@@ -166,7 +168,10 @@ mod tests {
     #[test]
     fn test_feed_optional_fields_absent() {
         let xml = minimal_rss(&rss_item(
-            "ep1", "Episode 1", "https://example.com/ep1.mp3", "Mon, 01 Jan 2024 00:00:00 GMT",
+            "ep1",
+            "Episode 1",
+            "https://example.com/ep1.mp3",
+            "Mon, 01 Jan 2024 00:00:00 GMT",
         ));
 
         let result = parse_feed(xml.as_bytes()).unwrap();
@@ -182,7 +187,12 @@ mod tests {
         let xml = minimal_rss(&format!(
             r#"<image><url>https://example.com/icon.png</url><title>icon</title><link>https://example.com</link></image>
             {}"#,
-            rss_item("ep1", "Episode 1", "https://example.com/ep1.mp3", "Mon, 01 Jan 2024 00:00:00 GMT"),
+            rss_item(
+                "ep1",
+                "Episode 1",
+                "https://example.com/ep1.mp3",
+                "Mon, 01 Jan 2024 00:00:00 GMT"
+            ),
         ));
 
         let result = parse_feed(xml.as_bytes()).unwrap();
@@ -195,7 +205,10 @@ mod tests {
     #[test]
     fn test_episode_audio_from_enclosure() {
         let xml = minimal_rss(&rss_item(
-            "ep1", "Episode 1", "https://example.com/ep1.mp3", "Mon, 01 Jan 2024 00:00:00 GMT",
+            "ep1",
+            "Episode 1",
+            "https://example.com/ep1.mp3",
+            "Mon, 01 Jan 2024 00:00:00 GMT",
         ));
 
         let result = parse_feed(xml.as_bytes()).unwrap();
@@ -254,7 +267,10 @@ mod tests {
 
         let result = parse_feed(xml.as_bytes()).unwrap();
         assert_eq!(result.episodes.len(), 1);
-        assert_eq!(result.episodes[0].audio_url, "https://example.com/audio.mp3");
+        assert_eq!(
+            result.episodes[0].audio_url,
+            "https://example.com/audio.mp3"
+        );
     }
 
     #[test]
@@ -276,13 +292,19 @@ mod tests {
     #[test]
     fn test_episode_published_at() {
         let xml = minimal_rss(&rss_item(
-            "ep1", "Episode 1", "https://example.com/ep1.mp3", "Mon, 01 Jan 2024 12:30:00 +0900",
+            "ep1",
+            "Episode 1",
+            "https://example.com/ep1.mp3",
+            "Mon, 01 Jan 2024 12:30:00 +0900",
         ));
 
         let result = parse_feed(xml.as_bytes()).unwrap();
         let pub_at = &result.episodes[0].published_at;
         // RFC3339 形式であることを確認
-        assert!(pub_at.contains("2024-01-01"), "published_at should contain date: {pub_at}");
+        assert!(
+            pub_at.contains("2024-01-01"),
+            "published_at should contain date: {pub_at}"
+        );
     }
 
     #[test]
@@ -316,13 +338,26 @@ mod tests {
               <title>No Date</title>
               <enclosure url="https://example.com/nodate.mp3" type="audio/mpeg" length="100"/>
             </item>"#,
-            rss_item("ep1", "Valid 1", "https://example.com/ep1.mp3", "Mon, 01 Jan 2024 00:00:00 GMT"),
-            rss_item("ep2", "Valid 2", "https://example.com/ep2.mp3", "Tue, 02 Jan 2024 00:00:00 GMT"),
+            rss_item(
+                "ep1",
+                "Valid 1",
+                "https://example.com/ep1.mp3",
+                "Mon, 01 Jan 2024 00:00:00 GMT"
+            ),
+            rss_item(
+                "ep2",
+                "Valid 2",
+                "https://example.com/ep2.mp3",
+                "Tue, 02 Jan 2024 00:00:00 GMT"
+            ),
         ));
 
         let result = parse_feed(xml.as_bytes()).unwrap();
         assert_eq!(result.episodes.len(), 2);
-        assert!(result.episodes.iter().all(|e| e.guid == "ep1" || e.guid == "ep2"));
+        assert!(result
+            .episodes
+            .iter()
+            .all(|e| e.guid == "ep1" || e.guid == "ep2"));
     }
 
     #[test]
@@ -349,9 +384,6 @@ mod tests {
 
 /// RSS フィードを取得・パースし、PodcastFeed として返す
 pub async fn fetch_and_parse(feed_url: &str) -> Result<PodcastFeed, AppError> {
-    let body = reqwest::get(feed_url)
-        .await?
-        .bytes()
-        .await?;
+    let body = reqwest::get(feed_url).await?.bytes().await?;
     parse_feed(&body)
 }

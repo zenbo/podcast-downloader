@@ -6,11 +6,7 @@ use crate::models::settings::CharacterReplacement;
 const FORBIDDEN_CHARS: &[char] = &['\\', '/', ':', '*', '?', '"', '<', '>', '|'];
 
 /// 文字置換ルールを適用し、OS 禁止文字をフォールバック文字で置換する
-pub fn sanitize(
-    text: &str,
-    replacements: &[CharacterReplacement],
-    fallback: &str,
-) -> String {
+pub fn sanitize(text: &str, replacements: &[CharacterReplacement], fallback: &str) -> String {
     let mut result = text.to_string();
 
     // 1. ユーザー定義の置換ルールを順序どおり適用
@@ -43,10 +39,7 @@ pub fn build_download_path(
     let sanitized_episode = sanitize(episode_title, replacements, fallback);
 
     // published_at ("2026-02-22T10:30:00Z") から日付部分を抽出
-    let date_part = published_at
-        .split('T')
-        .next()
-        .unwrap_or("0000-00-00");
+    let date_part = published_at.split('T').next().unwrap_or("0000-00-00");
 
     // 音声 URL から拡張子を抽出
     let ext = extract_extension(audio_url);
@@ -76,13 +69,34 @@ mod tests {
 
     fn default_replacements() -> Vec<CharacterReplacement> {
         vec![
-            CharacterReplacement { before: "/".to_string(), after: "-".to_string() },
-            CharacterReplacement { before: ":".to_string(), after: "-".to_string() },
-            CharacterReplacement { before: "?".to_string(), after: "".to_string() },
-            CharacterReplacement { before: "\"".to_string(), after: "".to_string() },
-            CharacterReplacement { before: "<".to_string(), after: "".to_string() },
-            CharacterReplacement { before: ">".to_string(), after: "".to_string() },
-            CharacterReplacement { before: "|".to_string(), after: "".to_string() },
+            CharacterReplacement {
+                before: "/".to_string(),
+                after: "-".to_string(),
+            },
+            CharacterReplacement {
+                before: ":".to_string(),
+                after: "-".to_string(),
+            },
+            CharacterReplacement {
+                before: "?".to_string(),
+                after: "".to_string(),
+            },
+            CharacterReplacement {
+                before: "\"".to_string(),
+                after: "".to_string(),
+            },
+            CharacterReplacement {
+                before: "<".to_string(),
+                after: "".to_string(),
+            },
+            CharacterReplacement {
+                before: ">".to_string(),
+                after: "".to_string(),
+            },
+            CharacterReplacement {
+                before: "|".to_string(),
+                after: "".to_string(),
+            },
         ]
     }
 
@@ -130,7 +144,9 @@ mod tests {
         );
         assert_eq!(
             path,
-            PathBuf::from("/Users/test/Podcasts/My Podcast- Special/2026-02-22_Episode 1- Introduction.mp3")
+            PathBuf::from(
+                "/Users/test/Podcasts/My Podcast- Special/2026-02-22_Episode 1- Introduction.mp3"
+            )
         );
     }
 
@@ -152,7 +168,13 @@ mod tests {
     #[test]
     fn test_extract_extension() {
         assert_eq!(extract_extension("https://example.com/file.mp3"), "mp3");
-        assert_eq!(extract_extension("https://example.com/file.m4a?key=val"), "m4a");
-        assert_eq!(extract_extension("https://example.com/file.ogg#anchor"), "ogg");
+        assert_eq!(
+            extract_extension("https://example.com/file.m4a?key=val"),
+            "m4a"
+        );
+        assert_eq!(
+            extract_extension("https://example.com/file.ogg#anchor"),
+            "ogg"
+        );
     }
 }

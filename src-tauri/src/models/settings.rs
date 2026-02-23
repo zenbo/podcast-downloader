@@ -24,8 +24,14 @@ impl Default for AppSettings {
         Self {
             download_dir: None,
             character_replacements: vec![
-                CharacterReplacement { before: "/".to_string(), after: "-".to_string() },
-                CharacterReplacement { before: ":".to_string(), after: "-".to_string() },
+                CharacterReplacement {
+                    before: "/".to_string(),
+                    after: "-".to_string(),
+                },
+                CharacterReplacement {
+                    before: ":".to_string(),
+                    after: "-".to_string(),
+                },
             ],
             fallback_replacement: "_".to_string(),
         }
