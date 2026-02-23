@@ -190,10 +190,21 @@ CREATE INDEX idx_episodes_podcast_published ON episodes(podcast_id, published_at
 | キー | デフォルト値 | 備考 |
 |------|-------------|------|
 | `download_dir` | （未設定） | 初回DL時にフォルダ選択ダイアログで設定を促す |
-| `character_replacements` | `[{"before":"/","after":"-"},{"before":":","after":"-"},{"before":"?","after":""},{"before":"\"","after":""},{"before":"<","after":""},{"before":">","after":""},{"before":"\|","after":""}]` | Windows の禁止文字に対応 |
+| `character_replacements` | `[{"before":"/","after":"-"},{"before":":","after":"-"}]` | 下記「個別ルールの選定基準」参照 |
 | `fallback_replacement` | `"_"` | 個別ルールに該当しない禁止文字の置換先 |
 
 `download_dir` が未設定の状態でダウンロードを実行した場合は、フォルダ選択ダイアログを表示してユーザーに設定を促す。
+
+#### 個別ルールの選定基準（ADR-015）
+
+`character_replacements` に個別ルールを設定する文字は、`fallback_replacement` (`_`) では可読性が著しく低下するものに限定する。
+
+| 文字 | after | 理由 |
+|------|-------|------|
+| `/` | `-` | 日付表記 `2024/01/15` → `2024-01-15` の可読性維持 |
+| `:` | `-` | ラベル区切り・時刻表記ともに `-` で許容範囲 |
+
+上記以外の Windows 禁止文字（`?` `"` `<` `>` `|`）は `fallback_replacement` による一括置換に委任する。これにより設定画面の一覧が簡潔になり、単語境界も `_` で保たれる。
 
 ## 5. 新着判定ロジック
 

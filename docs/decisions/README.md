@@ -26,3 +26,4 @@
 | [ADR-012](adr-012-commands-testability.md) | 2026-02-23 | Commands 層のテスタビリティ改善 → トレイト抽象化 + コールバック汎用化 | 採用 |
 | [ADR-013](adr-013-remove-duration.md) | 2026-02-23 | duration フィールドの削除 → feed-rs の MM:SS パースバグ回避 | 採用 |
 | [ADR-014](adr-014-no-visual-regression-testing.md) | 2026-02-23 | ビジュアルリグレッションテストを導入しない → 画面数に対してコスト過大 | 採用 |
+| [ADR-015](adr-015-simplify-default-replacements.md) | 2026-02-23 | デフォルト文字置換ルールの簡素化 → `/` `:` のみ個別ルール、他は fallback に統一 | 採用 |
