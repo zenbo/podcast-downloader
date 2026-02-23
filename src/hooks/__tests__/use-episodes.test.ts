@@ -48,7 +48,7 @@ describe("use-episodes hooks", () => {
 
   describe("useCheckNewEpisodes", () => {
     it("checkNewEpisodes を呼び出し、成功時に episodes と podcasts クエリを無効化する", async () => {
-      mockCheckNewEpisodes.mockResolvedValue([]);
+      mockCheckNewEpisodes.mockResolvedValue({ newCount: 0, newlyFoundCount: 0 });
 
       const { result, queryClient } = renderHookWithQueryClient(() =>
         useCheckNewEpisodes(),

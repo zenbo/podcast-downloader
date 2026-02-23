@@ -73,9 +73,11 @@ function EpisodeListPage() {
 
   function handleCheckNew() {
     checkNew.mutate(podcastId, {
-      onSuccess: (results) => {
-        if (results.length > 0) {
-          toast.success(`${results.length} 件の新着エピソードが見つかりました`);
+      onSuccess: (result) => {
+        if (result.newlyFoundCount > 0) {
+          toast.success(
+            `${result.newlyFoundCount} 件の新着エピソードが見つかりました`,
+          );
         } else {
           toast("新着エピソードはありません");
         }

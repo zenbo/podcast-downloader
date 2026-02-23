@@ -13,3 +13,11 @@ export interface Episode {
   /** バックエンドの新着判定ロジックに基づく新着フラグ */
   isNew: boolean;
 }
+
+/** 新着チェック結果（単一番組） */
+export interface CheckNewResult {
+  /** 現在の新着エピソード数（既存 + 今回発見） */
+  newCount: number;
+  /** 今回のチェックで新たに見つかったエピソード数 */
+  newlyFoundCount: number;
+}

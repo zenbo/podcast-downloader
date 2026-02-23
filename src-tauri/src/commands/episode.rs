@@ -5,7 +5,7 @@ use tauri::State;
 
 use crate::db::{self, DbState};
 use crate::error::AppError;
-use crate::models::episode::Episode;
+use crate::models::episode::{CheckNewResult, Episode};
 use crate::models::podcast::PodcastNewCount;
 use crate::services::traits::{RssFetcher, ServiceContainer};
 
@@ -35,7 +35,7 @@ pub async fn check_new_episodes(
     podcast_id: i64,
     state: State<'_, DbState>,
     services: State<'_, ServiceContainer>,
-) -> Result<Vec<Episode>, AppError> {
+) -> Result<CheckNewResult, AppError> {
     // 1. DB から番組情報を取得
     let feed_url = {
         let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
@@ -56,11 +56,15 @@ pub(crate) fn check_new_episodes_impl(
     conn: &Connection,
     podcast_id: i64,
     feed: crate::models::podcast::PodcastFeed,
-) -> Result<Vec<Episode>, AppError> {
+) -> Result<CheckNewResult, AppError> {
+    let before_count = db::episode::get_new_episodes(conn, podcast_id)?.len();
     db::episode::insert_bulk(conn, podcast_id, &feed.episodes)?;
-    let new_episodes = db::episode::get_new_episodes(conn, podcast_id)?;
+    let new_count = db::episode::get_new_episodes(conn, podcast_id)?.len();
     db::podcast::update_last_checked(conn, podcast_id)?;
-    Ok(new_episodes)
+    Ok(CheckNewResult {
+        new_count,
+        newly_found_count: new_count.saturating_sub(before_count),
+    })
 }
 
 /// 全番組の新着をチェックする
@@ -101,18 +105,20 @@ pub(crate) async fn check_all_new_impl(
         };
 
         // 新規エピソードを挿入し、新着数をカウント
-        let new_count = {
+        let (new_count, newly_found_count) = {
             let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
+            let before_count = db::episode::get_new_episodes(&conn, podcast.id)?.len();
             db::episode::insert_bulk(&conn, podcast.id, &feed.episodes)?;
-            let new_episodes = db::episode::get_new_episodes(&conn, podcast.id)?;
+            let after_count = db::episode::get_new_episodes(&conn, podcast.id)?.len();
             db::podcast::update_last_checked(&conn, podcast.id)?;
-            new_episodes.len()
+            (after_count, after_count.saturating_sub(before_count))
         };
 
         results.push(PodcastNewCount {
             podcast_id: podcast.id,
             title: podcast.title.clone(),
             new_count,
+            newly_found_count,
         });
     }
 
@@ -133,10 +139,11 @@ mod tests {
         let feed = make_feed("Podcast", 3);
 
         let conn = state.0.lock().unwrap();
-        let new_episodes = check_new_episodes_impl(&conn, podcast_id, feed).unwrap();
+        let result = check_new_episodes_impl(&conn, podcast_id, feed).unwrap();
 
-        // DL 履歴なし → 全エピソードが新着
-        assert_eq!(new_episodes.len(), 3);
+        // DL 履歴なし → 全エピソードが新着、かつ全て今回発見
+        assert_eq!(result.new_count, 3);
+        assert_eq!(result.newly_found_count, 3);
     }
 
     #[test]
@@ -150,11 +157,14 @@ mod tests {
 
         let conn = state.0.lock().unwrap();
         check_new_episodes_impl(&conn, podcast_id, feed1).unwrap();
-        let _new_episodes = check_new_episodes_impl(&conn, podcast_id, feed2).unwrap();
+        let result = check_new_episodes_impl(&conn, podcast_id, feed2).unwrap();
 
         // 重複は無視され、合計 5 件になる
         let all = db::episode::list_by_podcast(&conn, podcast_id).unwrap();
         assert_eq!(all.len(), 5);
+        // 新着 5 件のうち、今回新たに見つかったのは 2 件
+        assert_eq!(result.new_count, 5);
+        assert_eq!(result.newly_found_count, 2);
     }
 
     #[tokio::test]
@@ -185,6 +195,7 @@ mod tests {
         assert_eq!(results.len(), 2);
         for r in &results {
             assert_eq!(r.new_count, 2);
+            assert_eq!(r.newly_found_count, 2);
         }
     }
 
@@ -214,6 +225,7 @@ mod tests {
         // 失敗した番組はスキップされ、成功した番組のみ結果に含まれる
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].new_count, 2);
+        assert_eq!(results[0].newly_found_count, 2);
     }
 
     #[tokio::test]

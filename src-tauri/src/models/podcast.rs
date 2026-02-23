@@ -43,5 +43,8 @@ pub struct PodcastFeed {
 pub struct PodcastNewCount {
     pub podcast_id: i64,
     pub title: String,
+    /// 現在の新着エピソード数（既存 + 今回発見）
     pub new_count: usize,
+    /// 今回のチェックで新たに見つかったエピソード数
+    pub newly_found_count: usize,
 }

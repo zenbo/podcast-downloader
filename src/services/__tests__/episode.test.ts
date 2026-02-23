@@ -44,21 +44,22 @@ describe("episode service", () => {
 
   describe("checkNewEpisodes", () => {
     it("invoke を 'check_new_episodes' コマンドと podcastId 引数で呼び出す", async () => {
-      mockInvoke.mockResolvedValue([]);
+      const mockResult = { newCount: 2, newlyFoundCount: 2 };
+      mockInvoke.mockResolvedValue(mockResult);
 
       const result = await checkNewEpisodes(5);
 
       expect(mockInvoke).toHaveBeenCalledWith("check_new_episodes", {
         podcastId: 5,
       });
-      expect(result).toEqual([]);
+      expect(result).toEqual(mockResult);
     });
   });
 
   describe("checkAllNew", () => {
     it("invoke を 'check_all_new' コマンドで呼び出す", async () => {
       const mockCounts: PodcastNewCount[] = [
-        { podcastId: 1, title: "Podcast A", newCount: 3 },
+        { podcastId: 1, title: "Podcast A", newCount: 3, newlyFoundCount: 3 },
       ];
       mockInvoke.mockResolvedValue(mockCounts);
 

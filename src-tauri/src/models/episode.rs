@@ -29,6 +29,16 @@ pub struct NewEpisode {
     pub published_at: String,
 }
 
+/// 新着チェック結果（単一番組）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckNewResult {
+    /// 現在の新着エピソード数（既存 + 今回発見）
+    pub new_count: usize,
+    /// 今回のチェックで新たに見つかったエピソード数
+    pub newly_found_count: usize,
+}
+
 /// 個別ダウンロード進捗通知用
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

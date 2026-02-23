@@ -110,7 +110,7 @@ describe("use-podcasts hooks", () => {
   describe("useCheckAllNew", () => {
     it("checkAllNew を呼び出し、成功時に podcasts クエリを無効化する", async () => {
       const mockCounts: PodcastNewCount[] = [
-        { podcastId: 1, title: "A", newCount: 2 },
+        { podcastId: 1, title: "A", newCount: 2, newlyFoundCount: 2 },
       ];
       mockCheckAllNew.mockResolvedValue(mockCounts);
 

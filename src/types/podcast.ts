@@ -25,5 +25,8 @@ export interface PodcastSummary {
 export interface PodcastNewCount {
   podcastId: number;
   title: string;
+  /** 現在の新着エピソード数（既存 + 今回発見） */
   newCount: number;
+  /** 今回のチェックで新たに見つかったエピソード数 */
+  newlyFoundCount: number;
 }

@@ -65,7 +65,7 @@ function PodcastListPage() {
   function handleCheckAllNew() {
     checkAllNew.mutate(undefined, {
       onSuccess: (results) => {
-        const total = results.reduce((sum, r) => sum + r.newCount, 0);
+        const total = results.reduce((sum, r) => sum + r.newlyFoundCount, 0);
         if (total > 0) {
           toast.success(`${total} 件の新着エピソードが見つかりました`);
         } else {
