@@ -12,6 +12,7 @@ pub enum AppError {
     #[error("RSSパースエラー: {0}")]
     RssParse(String),
 
+    #[cfg(test)]
     #[error("無効なURL: {0}")]
     InvalidUrl(String),
 

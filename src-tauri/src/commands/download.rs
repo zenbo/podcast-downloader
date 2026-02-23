@@ -8,14 +8,6 @@ use crate::models::episode::{BatchDownloadProgress, DownloadProgress, Episode};
 use crate::services::filename;
 use crate::services::traits::{FileDownloader, ServiceContainer, SettingsStore};
 
-/// 一括ダウンロードの結果
-#[derive(Debug, Clone)]
-pub(crate) struct BatchDownloadResult {
-    pub completed_count: usize,
-    pub failed_count: usize,
-    pub total_count: usize,
-}
-
 /// エピソードをダウンロードする（進捗通知付き）
 #[tauri::command]
 pub async fn download_episode(
@@ -166,78 +158,6 @@ pub async fn batch_download_new(
     Ok(())
 }
 
-/// batch_download_new のテスト可能なワークフロー全体
-///
-/// 個別エピソードのダウンロード失敗時はスキップして次のエピソードへ進む（部分的成功パターン）。
-pub(crate) async fn batch_download_new_workflow(
-    state: &DbState,
-    settings_store: &dyn SettingsStore,
-    file_downloader: &dyn FileDownloader,
-    podcast_ids: &[i64],
-) -> Result<BatchDownloadResult, AppError> {
-    let settings = settings_store.load_settings()?;
-    let download_dir = settings
-        .download_dir
-        .as_deref()
-        .ok_or_else(|| AppError::Other("ダウンロード先フォルダが設定されていません".to_string()))?
-        .to_string();
-
-    let all_episodes = {
-        let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
-        collect_new_episodes(&conn, podcast_ids)?
-    };
-
-    let total_count = all_episodes.len();
-    let mut completed_count: usize = 0;
-    let mut failed_count: usize = 0;
-
-    for (episode, podcast_title) in &all_episodes {
-        let save_path = filename::build_download_path(
-            &download_dir,
-            podcast_title,
-            &episode.title,
-            &episode.published_at,
-            &episode.audio_url,
-            &settings.character_replacements,
-            &settings.fallback_replacement,
-        );
-
-        let episode_id = episode.id;
-
-        let download_result = file_downloader
-            .download(
-                &episode.audio_url,
-                &save_path,
-                episode_id,
-                Box::new(|_| {}),
-            )
-            .await;
-
-        match download_result {
-            Ok(()) => {
-                let conn =
-                    state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
-                db::episode::mark_downloaded(&conn, episode_id)?;
-                completed_count += 1;
-            }
-            Err(e) => {
-                log::warn!(
-                    "エピソード「{}」のダウンロードに失敗、スキップ: {}",
-                    episode.title,
-                    e
-                );
-                failed_count += 1;
-            }
-        }
-    }
-
-    Ok(BatchDownloadResult {
-        completed_count,
-        failed_count,
-        total_count,
-    })
-}
-
 /// 指定番組の新着エピソードを収集する（テスト可能なヘルパー）
 pub(crate) fn collect_new_episodes(
     conn: &Connection,
@@ -259,6 +179,89 @@ mod tests {
     use super::*;
     use crate::commands::test_helpers::*;
     use crate::db;
+    use crate::services::traits::{FileDownloader, SettingsStore};
+
+    /// 一括ダウンロードの結果
+    #[derive(Debug, Clone)]
+    struct BatchDownloadResult {
+        completed_count: usize,
+        failed_count: usize,
+        total_count: usize,
+    }
+
+    /// batch_download_new のテスト可能なワークフロー全体
+    ///
+    /// 個別エピソードのダウンロード失敗時はスキップして次のエピソードへ進む（部分的成功パターン）。
+    async fn batch_download_new_workflow(
+        state: &DbState,
+        settings_store: &dyn SettingsStore,
+        file_downloader: &dyn FileDownloader,
+        podcast_ids: &[i64],
+    ) -> Result<BatchDownloadResult, AppError> {
+        let settings = settings_store.load_settings()?;
+        let download_dir = settings
+            .download_dir
+            .as_deref()
+            .ok_or_else(|| {
+                AppError::Other("ダウンロード先フォルダが設定されていません".to_string())
+            })?
+            .to_string();
+
+        let all_episodes = {
+            let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
+            collect_new_episodes(&conn, podcast_ids)?
+        };
+
+        let total_count = all_episodes.len();
+        let mut completed_count: usize = 0;
+        let mut failed_count: usize = 0;
+
+        for (episode, podcast_title) in &all_episodes {
+            let save_path = filename::build_download_path(
+                &download_dir,
+                podcast_title,
+                &episode.title,
+                &episode.published_at,
+                &episode.audio_url,
+                &settings.character_replacements,
+                &settings.fallback_replacement,
+            );
+
+            let episode_id = episode.id;
+
+            let download_result = file_downloader
+                .download(
+                    &episode.audio_url,
+                    &save_path,
+                    episode_id,
+                    Box::new(|_| {}),
+                )
+                .await;
+
+            match download_result {
+                Ok(()) => {
+                    let conn =
+                        state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
+                    db::episode::mark_downloaded(&conn, episode_id)?;
+                    completed_count += 1;
+                }
+                Err(e) => {
+                    log::warn!(
+                        "エピソード「{}」のダウンロードに失敗、スキップ: {}",
+                        episode.title,
+                        e
+                    );
+                    failed_count += 1;
+                }
+            }
+        }
+
+        Ok(BatchDownloadResult {
+            completed_count,
+            failed_count,
+            total_count,
+        })
+    }
 
     #[tokio::test]
     async fn test_download_episode_settings_not_configured() {

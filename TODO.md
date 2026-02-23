@@ -174,7 +174,7 @@
 
 ### コード品質
 
-- [ ] **#18 Rust dead_code 警告を解消する**
+- [x] **#18 Rust dead_code 警告を解消する**
   - `BatchDownloadResult` / `batch_download_new_workflow`: テスト専用コードなので `#[cfg(test)]` モジュールへ移動する
   - `AppError::InvalidUrl`: 未使用バリアントを削除する
 
