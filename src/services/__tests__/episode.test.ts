@@ -24,7 +24,6 @@ describe("episode service", () => {
           title: "Episode 1",
           description: null,
           audioUrl: "https://example.com/ep1.mp3",
-          duration: "00:30:00",
           fileSize: 12345678,
           publishedAt: "2025-01-01T00:00:00Z",
           downloadedAt: null,

@@ -11,7 +11,6 @@ fn row_to_episode(row: &Row) -> rusqlite::Result<Episode> {
         title: row.get("title")?,
         description: row.get("description")?,
         audio_url: row.get("audio_url")?,
-        duration: row.get("duration")?,
         file_size: row.get("file_size")?,
         published_at: row.get("published_at")?,
         downloaded_at: row.get("downloaded_at")?,
@@ -27,8 +26,8 @@ pub fn insert_bulk(
 ) -> Result<(), AppError> {
     let mut stmt = conn.prepare(
         "INSERT OR IGNORE INTO episodes
-         (podcast_id, guid, title, description, audio_url, duration, file_size, published_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+         (podcast_id, guid, title, description, audio_url, file_size, published_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
     )?;
     for ep in episodes {
         stmt.execute(params![
@@ -37,7 +36,6 @@ pub fn insert_bulk(
             ep.title,
             ep.description,
             ep.audio_url,
-            ep.duration,
             ep.file_size,
             ep.published_at,
         ])?;
@@ -148,7 +146,6 @@ mod tests {
                 title: format!("Episode {i}"),
                 description: None,
                 audio_url: format!("https://example.com/ep{i}.mp3"),
-                duration: None,
                 file_size: None,
                 published_at: format!("2026-01-{:02}T00:00:00Z", i + 1),
             })

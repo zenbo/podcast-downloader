@@ -36,7 +36,6 @@ export function EpisodeCard({
         <p className="text-sm font-medium truncate">{episode.title}</p>
         <p className="text-xs text-muted-foreground">
           {formatDate(episode.publishedAt)}
-          {episode.duration && ` · ${episode.duration}`}
         </p>
       </div>
 

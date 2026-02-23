@@ -10,7 +10,6 @@ pub struct Episode {
     pub title: String,
     pub description: Option<String>,
     pub audio_url: String,
-    pub duration: Option<String>,
     pub file_size: Option<i64>,
     pub published_at: String,
     pub downloaded_at: Option<String>,
@@ -24,7 +23,6 @@ pub struct NewEpisode {
     pub title: String,
     pub description: Option<String>,
     pub audio_url: String,
-    pub duration: Option<String>,
     pub file_size: Option<i64>,
     pub published_at: String,
 }

@@ -29,7 +29,6 @@ describe("use-episodes hooks", () => {
           title: "Ep 1",
           description: null,
           audioUrl: "https://example.com/ep1.mp3",
-          duration: null,
           fileSize: null,
           publishedAt: "2025-01-01T00:00:00Z",
           downloadedAt: null,

@@ -35,7 +35,6 @@ erDiagram
         text title
         text description
         text audio_url
-        text duration
         int file_size
         text published_at
         text downloaded_at
@@ -68,7 +67,6 @@ erDiagram
 | title | TEXT | NOT NULL | RSS `<item><title>` | エピソードタイトル |
 | description | TEXT | | RSS `<item><description>` | エピソードの説明 |
 | audio_url | TEXT | NOT NULL | RSS `<item><enclosure url>` | 音声ファイルの URL |
-| duration | TEXT | | iTunes `<itunes:duration>` | 再生時間 |
 | file_size | INTEGER | | RSS `<item><enclosure length>` | ファイルサイズ（バイト） |
 | published_at | TEXT | NOT NULL | RSS `<item><pubDate>` | 配信日時（ISO 8601） |
 | downloaded_at | TEXT | | アプリ | DL完了日時（ISO 8601）。NULL = 未DL |
@@ -120,7 +118,7 @@ use rusqlite_migration::{Migrations, M};
 
 const MIGRATIONS: Migrations<'_> = Migrations::from_slice(&[
     M::up(include_str!("../migrations/001_initial.sql")),
-    // 今後のマイグレーションを追加
+    M::up(include_str!("../migrations/002_drop_duration.sql")),
 ]);
 ```
 
@@ -147,7 +145,6 @@ CREATE TABLE episodes (
     title TEXT NOT NULL,
     description TEXT,
     audio_url TEXT NOT NULL,
-    duration TEXT,
     file_size INTEGER,
     published_at TEXT NOT NULL,
     downloaded_at TEXT,

@@ -194,7 +194,6 @@ pub fn make_episodes(count: usize) -> Vec<NewEpisode> {
             title: format!("Episode {i}"),
             description: None,
             audio_url: format!("https://example.com/ep{i}.mp3"),
-            duration: None,
             file_size: None,
             published_at: format!("2026-01-{:02}T00:00:00Z", i + 1),
         })

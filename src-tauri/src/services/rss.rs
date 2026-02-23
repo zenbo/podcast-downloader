@@ -58,28 +58,11 @@ pub fn parse_feed(data: &[u8]) -> Result<PodcastFeed, AppError> {
                 .and_then(|c| c.size)
                 .map(|s| s as i64);
 
-            let duration = entry
-                .media
-                .first()
-                .and_then(|m| m.duration)
-                .map(|d| {
-                    let total_secs = d.as_secs();
-                    let hours = total_secs / 3600;
-                    let minutes = (total_secs % 3600) / 60;
-                    let seconds = total_secs % 60;
-                    if hours > 0 {
-                        format!("{:02}:{:02}:{:02}", hours, minutes, seconds)
-                    } else {
-                        format!("{:02}:{:02}", minutes, seconds)
-                    }
-                });
-
             Some(NewEpisode {
                 guid: entry.id,
                 title: entry.title.map(|t| t.content).unwrap_or_default(),
                 description: entry.summary.map(|s| s.content),
                 audio_url,
-                duration,
                 file_size,
                 published_at,
             })
@@ -228,49 +211,6 @@ mod tests {
 
         let result = parse_feed(xml.as_bytes()).unwrap();
         assert_eq!(result.episodes.len(), 0);
-    }
-
-    // ─── Duration ───
-
-    #[test]
-    fn test_duration_format() {
-        // itunes:duration は feed-rs で media[0].duration にマッピングされる
-        let xml = minimal_rss(
-            r#"<item>
-              <guid>ep-long</guid>
-              <title>Long Episode</title>
-              <enclosure url="https://example.com/long.mp3" type="audio/mpeg" length="100"/>
-              <pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate>
-              <itunes:duration>01:01:01</itunes:duration>
-            </item>
-            <item>
-              <guid>ep-short</guid>
-              <title>Short Episode</title>
-              <enclosure url="https://example.com/short.mp3" type="audio/mpeg" length="100"/>
-              <pubDate>Tue, 02 Jan 2024 00:00:00 GMT</pubDate>
-              <itunes:duration>125</itunes:duration>
-            </item>
-            <item>
-              <guid>ep-no-dur</guid>
-              <title>No Duration</title>
-              <enclosure url="https://example.com/nodur.mp3" type="audio/mpeg" length="100"/>
-              <pubDate>Wed, 03 Jan 2024 00:00:00 GMT</pubDate>
-            </item>"#,
-        );
-
-        let result = parse_feed(xml.as_bytes()).unwrap();
-        assert_eq!(result.episodes.len(), 3);
-
-        let long = result.episodes.iter().find(|e| e.guid == "ep-long").unwrap();
-        let short = result.episodes.iter().find(|e| e.guid == "ep-short").unwrap();
-        let no_dur = result.episodes.iter().find(|e| e.guid == "ep-no-dur").unwrap();
-
-        // HH:MM:SS → 1時間超なので HH:MM:SS 形式
-        assert_eq!(long.duration.as_deref(), Some("01:01:01"));
-        // 125秒 → 1時間未満なので MM:SS 形式
-        assert_eq!(short.duration.as_deref(), Some("02:05"));
-        // duration なし → None
-        assert!(no_dur.duration.is_none());
     }
 
     // ─── フィルタリング複合 ───

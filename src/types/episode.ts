@@ -6,7 +6,6 @@ export interface Episode {
   title: string;
   description: string | null;
   audioUrl: string;
-  duration: string | null;
   fileSize: number | null;
   publishedAt: string;
   downloadedAt: string | null;
