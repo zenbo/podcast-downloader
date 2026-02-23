@@ -75,11 +75,8 @@ podcast-downloader/
 ├── src/                  # フロントエンド（React + TypeScript）
 ├── src-tauri/            # バックエンド（Rust + Tauri）
 ├── docs/                 # 設計ドキュメント
-│   ├── 01-requirements.md
-│   ├── 02-architecture.md
-│   ├── 03-data-design.md
-│   ├── 04-ui-design.md
-│   ├── 05-development-guide.md
+│   ├── data-design.md    # データ設計書
+│   ├── development-guide.md # 開発ガイド
 │   └── decisions/        # ADR（設計判断記録）
 └── .github/workflows/    # CI/CD
     ├── ci.yml            # Lint・テスト・ビルドチェック
@@ -95,4 +92,4 @@ git tag v0.1.0
 git push origin main --tags
 ```
 
-詳細は [docs/05-development-guide.md](docs/05-development-guide.md) を参照。
+詳細は [docs/development-guide.md](docs/development-guide.md) を参照。

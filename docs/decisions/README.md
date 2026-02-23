@@ -8,25 +8,32 @@
 - Claude Code のセッション開始時は、まず本ファイル（一覧）を参照してコンテキストを引き継ぐこと
 - 詳細が必要な ADR のみ個別ファイルを参照すること（コンテキストウィンドウ節約のため）
 
+## ADR の粒度基準
+
+以下の **いずれか** に該当する判断のみ ADR として記録する。該当しないものは git commit body に理由を書けば十分。
+
+| 基準                 | 説明                                                         | 例                                                               |
+| -------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------- |
+| 影響範囲が広い       | 複数モジュール・複数レイヤーに変更が波及する                 | ADR-010（データ保存方式の簡素化）, ADR-012（テスタビリティ改善） |
+| 完成品から見えない   | アプリを動かしても正しさを判断できない内部設計               | ADR-005（新着判定ロジック）, ADR-003（DB選定）                   |
+| 後から変更が困難     | 一度決めると覆すコストが高い                                 | ADR-001（フレームワーク選定）, ADR-004（RSS取得方式）            |
+| 代替案との比較が重要 | 「なぜこれを選び、なぜ他を選ばなかったか」の記録に価値がある | ADR-008（状態管理選定）                                          |
+
+### git commit body で済むもの（ADR にしない）
+
+- 単一ファイル・単一モジュール内で完結する変更
+- 明らかに正しい修正（バグ修正、ライブラリの制約への対応等）
+- 元に戻すコストが低い変更
+
 ## 判断一覧
 
-| ID                                                  | 日付       | タイトル                                                                        | ステータス |
-| --------------------------------------------------- | ---------- | ------------------------------------------------------------------------------- | ---------- |
-| [ADR-001](adr-001-app-framework.md)                 | 2026-02-21 | アプリケーションフレームワークの選定 → Tauri v2                                 | 採用       |
-| [ADR-002](adr-002-frontend-framework.md)            | 2026-02-21 | フロントエンドフレームワークの選定 → React + TypeScript (Vite)                  | 採用       |
-| [ADR-003](adr-003-database.md)                      | 2026-02-21 | データベースの選定 → SQLite (rusqlite)                                          | 採用       |
-| [ADR-004](adr-004-apple-podcasts-rss.md)            | 2026-02-21 | Apple Podcasts URL からの RSS 取得方式 → iTunes Lookup API                      | 採用       |
-| [ADR-005](adr-005-new-episode-detection.md)         | 2026-02-21 | 新着エピソードの判定ロジック → 最終DLエピソードの配信日基準                     | 採用       |
-| [ADR-006](adr-006-package-manager.md)               | 2026-02-21 | パッケージマネージャーの選定 → pnpm                                             | 採用       |
-| [ADR-007](adr-007-windows-build.md)                 | 2026-02-21 | Windows ビルドの方式 → GitHub Actions のみ                                      | 採用       |
-| [ADR-008](adr-008-frontend-state-management.md)     | 2026-02-22 | フロントエンド状態管理の選定 → TanStack Query + useState                        | 採用       |
-| [ADR-009](adr-009-frontend-libraries.md)            | 2026-02-22 | フロントエンドライブラリの選定 → React Router / Tailwind CSS / shadcn/ui        | 採用       |
-| [ADR-010](adr-010-data-simplification.md)           | 2026-02-22 | データ保存方式の簡素化 → SQLite 2テーブル + JSON設定                            | 採用       |
-| [ADR-011](adr-011-adr-file-splitting.md)            | 2026-02-22 | ADR のファイル分割 → ディレクトリ分割方式                                       | 採用       |
-| [ADR-012](adr-012-commands-testability.md)          | 2026-02-23 | Commands 層のテスタビリティ改善 → トレイト抽象化 + コールバック汎用化           | 採用       |
-| [ADR-013](adr-013-remove-duration.md)               | 2026-02-23 | duration フィールドの削除 → feed-rs の MM:SS パースバグ回避                     | 採用       |
-| [ADR-014](adr-014-no-visual-regression-testing.md)  | 2026-02-23 | ビジュアルリグレッションテストを導入しない → 画面数に対してコスト過大           | 採用       |
-| [ADR-015](adr-015-simplify-default-replacements.md) | 2026-02-23 | デフォルト文字置換ルールの簡素化 → `/` `:` のみ個別ルール、他は fallback に統一 | 採用       |
-| [ADR-016](adr-016-remove-episode-sections.md)       | 2026-02-23 | エピソード一覧のセクション分け廃止 → フラットな配信日降順リストに統一           | 採用       |
-| [ADR-017](adr-017-change-app-identifier.md)         | 2026-02-23 | アプリ identifier の変更 → GitHub アカウントベースに統一                        | 採用       |
-| [ADR-018](adr-018-app-icon-design.md)               | 2026-02-23 | アプリアイコンのデザイン方針 → ヘッドホン + 下矢印、フラットデザイン            | 採用       |
+| ID                                              | 日付       | タイトル                                                              | ステータス |
+| ----------------------------------------------- | ---------- | --------------------------------------------------------------------- | ---------- |
+| [ADR-001](adr-001-app-framework.md)             | 2026-02-21 | アプリケーションフレームワークの選定 → Tauri v2                       | 採用       |
+| [ADR-002](adr-002-frontend-framework.md)        | 2026-02-21 | フロントエンドフレームワークの選定 → React + TypeScript (Vite)        | 採用       |
+| [ADR-003](adr-003-database.md)                  | 2026-02-21 | データベースの選定 → SQLite (rusqlite)                                | 採用       |
+| [ADR-004](adr-004-apple-podcasts-rss.md)        | 2026-02-21 | Apple Podcasts URL からの RSS 取得方式 → iTunes Lookup API            | 採用       |
+| [ADR-005](adr-005-new-episode-detection.md)     | 2026-02-21 | 新着エピソードの判定ロジック → 最終DLエピソードの配信日基準           | 採用       |
+| [ADR-008](adr-008-frontend-state-management.md) | 2026-02-22 | フロントエンド状態管理の選定 → TanStack Query + useState              | 採用       |
+| [ADR-010](adr-010-data-simplification.md)       | 2026-02-22 | データ保存方式の簡素化 → SQLite 2テーブル + JSON設定                  | 採用       |
+| [ADR-012](adr-012-commands-testability.md)      | 2026-02-23 | Commands 層のテスタビリティ改善 → トレイト抽象化 + コールバック汎用化 | 採用       |
