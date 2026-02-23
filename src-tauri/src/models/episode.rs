@@ -14,6 +14,8 @@ pub struct Episode {
     pub published_at: String,
     pub downloaded_at: Option<String>,
     pub created_at: String,
+    /// バックエンドの新着判定ロジックに基づく新着フラグ（DB カラムではない）
+    pub is_new: bool,
 }
 
 /// RSS からパースしたエピソード（DB 挿入用の中間形式）

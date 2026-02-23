@@ -27,6 +27,8 @@ export function EpisodeCard({
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
         ) : isDownloaded ? (
           <Check className="h-4 w-4 text-green-600" />
+        ) : episode.isNew ? (
+          <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
         ) : null}
       </div>
 

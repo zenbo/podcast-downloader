@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use rusqlite::Connection;
 use tauri::State;
 
@@ -7,14 +9,22 @@ use crate::models::episode::Episode;
 use crate::models::podcast::PodcastNewCount;
 use crate::services::traits::{RssFetcher, ServiceContainer};
 
-/// 番組のエピソード一覧を取得する
+/// 番組のエピソード一覧を取得する（新着フラグ付き）
 #[tauri::command]
 pub async fn list_episodes(
     podcast_id: i64,
     state: State<'_, DbState>,
 ) -> Result<Vec<Episode>, AppError> {
     let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
-    db::episode::list_by_podcast(&conn, podcast_id)
+    let mut episodes = db::episode::list_by_podcast(&conn, podcast_id)?;
+    let new_ids: HashSet<i64> = db::episode::get_new_episodes(&conn, podcast_id)?
+        .into_iter()
+        .map(|e| e.id)
+        .collect();
+    for ep in &mut episodes {
+        ep.is_new = new_ids.contains(&ep.id);
+    }
+    Ok(episodes)
 }
 
 /// 番組の新着エピソードをチェックする

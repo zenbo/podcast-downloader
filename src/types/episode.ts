@@ -10,4 +10,6 @@ export interface Episode {
   publishedAt: string;
   downloadedAt: string | null;
   createdAt: string;
+  /** バックエンドの新着判定ロジックに基づく新着フラグ */
+  isNew: boolean;
 }

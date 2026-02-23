@@ -28,6 +28,7 @@ describe("episode service", () => {
           publishedAt: "2025-01-01T00:00:00Z",
           downloadedAt: null,
           createdAt: "2025-01-01T00:00:00Z",
+          isNew: false,
         },
       ];
       mockInvoke.mockResolvedValue(mockEpisodes);

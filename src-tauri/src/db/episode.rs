@@ -15,6 +15,7 @@ fn row_to_episode(row: &Row) -> rusqlite::Result<Episode> {
         published_at: row.get("published_at")?,
         downloaded_at: row.get("downloaded_at")?,
         created_at: row.get("created_at")?,
+        is_new: false,
     })
 }
 
