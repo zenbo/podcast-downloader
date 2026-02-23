@@ -20,3 +20,8 @@ src-tauri/icons/ios/
 # OS
 .DS_Store
 Thumbs.db
+
+# Environment variables
+.env
+.env.*
+.env.local
