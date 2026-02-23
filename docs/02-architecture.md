@@ -379,6 +379,8 @@ sequenceDiagram
 
 個別ダウンロード（`DownloadProgress`）と一括ダウンロード（`BatchDownloadProgress`）の 2 種類の進捗型を定義している。一括ダウンロードの進捗には、全体の件数・完了件数と現在ダウンロード中のエピソード情報を含む。
 
+個別ダウンロードは複数同時に実行可能であり、フロントエンドでは `Map<episodeId, DownloadProgress>` で各エピソードの進捗を独立管理する。StatusBar は進捗の配列を受け取り、複数の進捗バーを同時に表示する。
+
 型の詳細は以下のファイルを参照:
 
 - **Rust**: `src-tauri/src/models/episode.rs`

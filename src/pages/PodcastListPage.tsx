@@ -150,6 +150,7 @@ function PodcastListPage() {
           batchProgress
             ? {
                 type: "batch",
+                id: batchProgress.currentEpisodeId,
                 title: batchProgress.currentEpisodeTitle,
                 percentage: batchProgress.episodeProgress.percentage ?? 0,
                 completedCount: batchProgress.completedCount,

@@ -1,4 +1,9 @@
-import { vi } from "vitest";
+import { vi, afterEach } from "vitest";
+import { cleanup } from "@testing-library/react";
+
+afterEach(() => {
+  cleanup();
+});
 
 // @tauri-apps/api/core のグローバルモック
 // 実際の Channel は window.__TAURI_INTERNALS__ に依存するため、

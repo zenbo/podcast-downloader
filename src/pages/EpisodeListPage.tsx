@@ -27,24 +27,32 @@ function EpisodeListPage() {
   const { data: episodes, isLoading, error } = useEpisodes(podcastId);
   const checkNew = useCheckNewEpisodes();
 
-  const [downloadingEpisodeId, setDownloadingEpisodeId] = useState<number | null>(null);
-  const [singleProgress, setSingleProgress] = useState<DownloadProgress | null>(null);
+  const [downloadingIds, setDownloadingIds] = useState<Set<number>>(new Set());
+  const [progressMap, setProgressMap] = useState<Map<number, DownloadProgress>>(new Map());
   const [batchProgress, setBatchProgress] = useState<BatchDownloadProgress | null>(null);
   const [isBatchDownloading, setIsBatchDownloading] = useState(false);
 
   async function handleDownload(episodeId: number) {
-    setDownloadingEpisodeId(episodeId);
+    setDownloadingIds((prev) => new Set(prev).add(episodeId));
     try {
       await downloadEpisode(episodeId, (progress) => {
-        setSingleProgress(progress);
+        setProgressMap((prev) => new Map(prev).set(episodeId, progress));
       });
       toast.success("ダウンロードが完了しました");
       queryClient.invalidateQueries({ queryKey: episodeKeys.list(podcastId) });
     } catch (err) {
       toast.error(String(err));
     } finally {
-      setDownloadingEpisodeId(null);
-      setSingleProgress(null);
+      setDownloadingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(episodeId);
+        return next;
+      });
+      setProgressMap((prev) => {
+        const next = new Map(prev);
+        next.delete(episodeId);
+        return next;
+      });
     }
   }
 
@@ -82,28 +90,30 @@ function EpisodeListPage() {
     });
   }
 
-  const isDownloading = downloadingEpisodeId !== null || isBatchDownloading;
+  const isDownloading = downloadingIds.size > 0 || isBatchDownloading;
   const hasNewEpisodes = episodes?.some((e) => e.isNew) ?? false;
 
   const statusBarProgress = useMemo(() => {
     if (batchProgress) {
       return {
         type: "batch" as const,
+        id: batchProgress.currentEpisodeId,
         title: batchProgress.currentEpisodeTitle,
         percentage: batchProgress.episodeProgress.percentage ?? 0,
         completedCount: batchProgress.completedCount,
         totalCount: batchProgress.totalCount,
       };
     }
-    if (singleProgress) {
-      return {
+    if (progressMap.size > 0) {
+      return Array.from(progressMap.entries()).map(([id, p]) => ({
         type: "single" as const,
-        title: episodes?.find((e) => e.id === singleProgress.episodeId)?.title ?? "",
-        percentage: singleProgress.percentage ?? 0,
-      };
+        id,
+        title: episodes?.find((e) => e.id === id)?.title ?? "",
+        percentage: p.percentage ?? 0,
+      }));
     }
     return null;
-  }, [batchProgress, singleProgress, episodes]);
+  }, [batchProgress, progressMap, episodes]);
 
   if (podcastsLoaded && !podcast) {
     return (
@@ -182,7 +192,7 @@ function EpisodeListPage() {
               <EpisodeCard
                 key={episode.id}
                 episode={episode}
-                isDownloading={downloadingEpisodeId === episode.id}
+                isDownloading={downloadingIds.has(episode.id)}
                 onDownload={() => handleDownload(episode.id)}
               />
             ))}
