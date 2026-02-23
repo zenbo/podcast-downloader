@@ -70,6 +70,17 @@ pub fn list(conn: &Connection) -> Result<Vec<PodcastSummary>, AppError> {
     Ok(podcasts)
 }
 
+/// 全番組の完全な情報を取得する
+pub fn list_all(conn: &Connection) -> Result<Vec<Podcast>, AppError> {
+    let mut stmt = conn.prepare("SELECT * FROM podcasts ORDER BY created_at DESC")?;
+    let rows = stmt.query_map([], row_to_podcast)?;
+    let mut podcasts = Vec::new();
+    for row in rows {
+        podcasts.push(row?);
+    }
+    Ok(podcasts)
+}
+
 /// 番組を ID で取得する
 pub fn get(conn: &Connection, id: i64) -> Result<Podcast, AppError> {
     let mut stmt = conn.prepare("SELECT * FROM podcasts WHERE id = ?1")?;
@@ -149,6 +160,28 @@ mod tests {
 
         let result = get(&conn, podcast.id);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_list_all_empty() {
+        let conn = init_test_db().unwrap();
+        let podcasts = list_all(&conn).unwrap();
+        assert!(podcasts.is_empty());
+    }
+
+    #[test]
+    fn test_list_all_returns_full_records() {
+        let conn = init_test_db().unwrap();
+        insert(&conn, "Podcast A", Some("Author A"), None, "https://a.com/feed", None, None).unwrap();
+        insert(&conn, "Podcast B", None, Some("Desc B"), "https://b.com/feed", None, None).unwrap();
+
+        let podcasts = list_all(&conn).unwrap();
+        assert_eq!(podcasts.len(), 2);
+
+        // list_all は Podcast 型（feed_url を含む完全な情報）を返す
+        let feed_urls: Vec<&str> = podcasts.iter().map(|p| p.feed_url.as_str()).collect();
+        assert!(feed_urls.contains(&"https://a.com/feed"));
+        assert!(feed_urls.contains(&"https://b.com/feed"));
     }
 
     #[test]

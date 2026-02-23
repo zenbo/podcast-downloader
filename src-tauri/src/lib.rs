@@ -1,4 +1,4 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 mod commands;
 mod db;
@@ -18,6 +18,17 @@ pub fn run() {
             std::fs::create_dir_all(&app_data_dir)?;
             let conn = db::init_db(&app_data_dir)?;
             app.manage(db::DbState(Mutex::new(conn)));
+
+            let service_container = services::traits::ServiceContainer {
+                rss_fetcher: Arc::new(services::real::RealRssFetcher),
+                feed_url_resolver: Arc::new(services::real::RealFeedUrlResolver),
+                file_downloader: Arc::new(services::real::RealFileDownloader),
+                settings_store: Arc::new(services::real::TauriSettingsStore::new(
+                    app.handle().clone(),
+                )),
+            };
+            app.manage(service_container);
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

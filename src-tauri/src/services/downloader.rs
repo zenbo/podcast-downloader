@@ -1,17 +1,16 @@
 use std::path::Path;
 
-use tauri::ipc::Channel;
 use tokio::io::AsyncWriteExt;
 
 use crate::error::AppError;
 use crate::models::episode::DownloadProgress;
 
-/// 音声ファイルを HTTP ストリーミングでダウンロードし、進捗を Channel で通知する
+/// 音声ファイルを HTTP ストリーミングでダウンロードし、進捗をコールバックで通知する
 pub async fn download(
     audio_url: &str,
     save_path: &Path,
     episode_id: i64,
-    on_progress: &Channel<DownloadProgress>,
+    mut on_progress: impl FnMut(DownloadProgress),
 ) -> Result<(), AppError> {
     // 保存先ディレクトリを作成
     if let Some(parent) = save_path.parent() {
@@ -36,7 +35,7 @@ pub async fn download(
             }
         });
 
-        let _ = on_progress.send(DownloadProgress {
+        on_progress(DownloadProgress {
             episode_id,
             downloaded_bytes,
             total_bytes,

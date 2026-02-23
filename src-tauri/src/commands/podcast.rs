@@ -1,37 +1,44 @@
+use rusqlite::Connection;
 use tauri::State;
 
 use crate::db::{self, DbState};
 use crate::error::AppError;
 use crate::models::podcast::{Podcast, PodcastSummary};
-use crate::services::{apple_podcasts, rss};
+use crate::services::traits::ServiceContainer;
 
 /// Apple Podcasts URL から番組を登録する
 #[tauri::command]
 pub async fn register_podcast(
     url: String,
     state: State<'_, DbState>,
+    services: State<'_, ServiceContainer>,
 ) -> Result<Podcast, AppError> {
-    // 1. Apple Podcasts URL → RSS フィード URL を解決
-    let feed_url = apple_podcasts::resolve_feed_url(&url).await?;
+    // 1. 外部 IO（ロック外で非同期処理）
+    let feed_url = services.feed_url_resolver.resolve_feed_url(&url).await?;
+    let feed = services.rss_fetcher.fetch_and_parse(&feed_url).await?;
 
-    // 2. RSS フィードを取得・パース
-    let feed = rss::fetch_and_parse(&feed_url).await?;
-
-    // 3. DB に番組を挿入
+    // 2. DB 操作
     let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
+    register_podcast_impl(&conn, &url, &feed_url, feed)
+}
+
+/// register_podcast のテスト可能なロジック部分
+pub(crate) fn register_podcast_impl(
+    conn: &Connection,
+    apple_podcasts_url: &str,
+    feed_url: &str,
+    feed: crate::models::podcast::PodcastFeed,
+) -> Result<Podcast, AppError> {
     let podcast = db::podcast::insert(
-        &conn,
+        conn,
         &feed.title,
         feed.author.as_deref(),
         feed.description.as_deref(),
-        &feed_url,
-        Some(url.as_str()),
+        feed_url,
+        Some(apple_podcasts_url),
         feed.image_url.as_deref(),
     )?;
-
-    // 4. エピソードを一括挿入
-    db::episode::insert_bulk(&conn, podcast.id, &feed.episodes)?;
-
+    db::episode::insert_bulk(conn, podcast.id, &feed.episodes)?;
     Ok(podcast)
 }
 

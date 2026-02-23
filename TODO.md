@@ -130,7 +130,7 @@
     - エピソード数が 0 件のフィード
     - audio_url が存在しないエントリのスキップ
 
-- [ ] **#15 Commands 層をテスト可能にリファクタリングする**
+- [x] **#15 Commands 層をテスト可能にリファクタリングする**
   - batch_download_new のインライン HTTP ダウンロード実装を downloader::download() と共通化し、コード重複を解消する
   - 外部 IO（HTTP クライアント、ファイルシステム、Tauri Store）をトレイトで抽象化し、テスト時にモックを差し込めるようにする
   - check_all_new の複数回 db::podcast::get() 呼び出しを 1 クエリに最適化する

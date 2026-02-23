@@ -1,49 +1,26 @@
 use tauri::AppHandle;
+use tauri::State;
 use tauri_plugin_dialog::DialogExt;
-use tauri_plugin_store::StoreExt;
 
 use crate::error::AppError;
 use crate::models::settings::AppSettings;
-
-const STORE_FILENAME: &str = "settings.json";
-const SETTINGS_KEY: &str = "settings";
-
-/// tauri-plugin-store から設定を読み込むヘルパー
-pub fn load_settings(app_handle: &AppHandle) -> Result<AppSettings, AppError> {
-    let store = app_handle
-        .store(STORE_FILENAME)
-        .map_err(|e| AppError::Other(e.to_string()))?;
-
-    let settings = store
-        .get(SETTINGS_KEY)
-        .and_then(|v| serde_json::from_value(v).ok())
-        .unwrap_or_default();
-
-    Ok(settings)
-}
+use crate::services::traits::ServiceContainer;
 
 /// 設定を取得する
 #[tauri::command]
-pub async fn get_settings(app_handle: AppHandle) -> Result<AppSettings, AppError> {
-    load_settings(&app_handle)
+pub async fn get_settings(
+    services: State<'_, ServiceContainer>,
+) -> Result<AppSettings, AppError> {
+    services.settings_store.load_settings()
 }
 
 /// 設定を保存する
 #[tauri::command]
 pub async fn update_settings(
     settings: AppSettings,
-    app_handle: AppHandle,
+    services: State<'_, ServiceContainer>,
 ) -> Result<(), AppError> {
-    let store = app_handle
-        .store(STORE_FILENAME)
-        .map_err(|e| AppError::Other(e.to_string()))?;
-
-    store.set(
-        SETTINGS_KEY,
-        serde_json::to_value(&settings).map_err(|e| AppError::Other(e.to_string()))?,
-    );
-
-    Ok(())
+    services.settings_store.save_settings(&settings)
 }
 
 /// フォルダ選択ダイアログを表示する
