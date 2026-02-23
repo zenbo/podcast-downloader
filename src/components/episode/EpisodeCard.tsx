@@ -21,7 +21,7 @@ export function EpisodeCard({
   const isDownloaded = episode.downloadedAt !== null;
 
   return (
-    <Card className="flex items-center gap-3 p-3">
+    <Card className="flex-row items-center gap-3 p-3">
       <div className="shrink-0 w-5 flex justify-center">
         {isDownloading ? (
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />

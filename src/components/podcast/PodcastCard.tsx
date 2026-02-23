@@ -1,5 +1,6 @@
 import { Trash2 } from "lucide-react";
 import type { PodcastSummary } from "@/types";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +23,7 @@ export function PodcastCard({
   onNavigate,
 }: PodcastCardProps) {
   return (
-    <Card className="flex items-center gap-3 p-3">
+    <Card className={cn("flex-row items-center gap-3 p-3", checked && "border-primary/50 bg-primary/5")}>
       <Checkbox
         checked={checked}
         onCheckedChange={(v) => onCheckedChange(v === true)}
