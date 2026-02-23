@@ -28,7 +28,7 @@
 
 ### 設定
 
-- [ ] **#22 アプリ identifier を変更する**
+- [x] **#22 アプリ identifier を変更する**
   - 経緯: 現在の `com.podcast-downloader.app` は逆ドメイン表記だが、`podcast-downloader.com` を所有していない。個人ドメイン `zenbo.jp` も候補だが将来手放す可能性がある
   - 変更内容: `com.podcast-downloader.app` → `com.github.zenbo.podcast-downloader`（GitHub アカウントは失効リスクがないため）
   - 影響範囲:
