@@ -135,7 +135,7 @@
   - 外部 IO（HTTP クライアント、ファイルシステム、Tauri Store）をトレイトで抽象化し、テスト時にモックを差し込めるようにする
   - check_all_new の複数回 db::podcast::get() 呼び出しを 1 クエリに最適化する
 
-- [ ] **#16 Commands 層のユニットテストを実装する** (blocked by: #15)
+- [x] **#16 Commands 層のユニットテストを実装する** (blocked by: #15)
   - download_episode: 設定未設定時のエラー、DL 失敗時に mark_downloaded が呼ばれないこと
   - batch_download_new: 一部エピソード失敗時の部分的成功、進捗通知の completed_count の正確性
   - check_all_new: 1 番組の RSS 取得失敗時に他の番組は継続すること
