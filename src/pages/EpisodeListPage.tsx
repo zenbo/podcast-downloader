@@ -53,14 +53,17 @@ function EpisodeListPage() {
   }
 
   async function handleBatchDownload() {
+    console.log("[BatchDL] 開始: podcastId=%d", podcastId);
     setIsBatchDownloading(true);
     try {
       await batchDownloadNew([podcastId], (progress) => {
         setBatchProgress(progress);
       });
+      console.log("[BatchDL] 完了");
       toast.success("一括ダウンロードが完了しました");
       queryClient.invalidateQueries({ queryKey: episodeKeys.list(podcastId) });
     } catch (err) {
+      console.error("[BatchDL] エラー:", err);
       toast.error(String(err));
     } finally {
       setBatchProgress(null);

@@ -91,6 +91,11 @@ pub async fn batch_download_new(
     };
 
     let total_count = all_episodes.len();
+    log::info!(
+        "batch_download_new: podcast_ids={:?}, 対象エピソード数={}",
+        podcast_ids,
+        total_count
+    );
     let mut completed_count: usize = 0;
     let mut failed_count: usize = 0;
 
