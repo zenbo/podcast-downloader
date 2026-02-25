@@ -13,7 +13,7 @@ interface DownloadContextValue {
   isBatchDownloading: boolean;
   downloadingIds: ReadonlySet<number>;
   progressMap: ReadonlyMap<number, { progress: DownloadProgress; title: string }>;
-  startBatchDownload: (podcastIds: number[]) => void;
+  startBatchDownload: (podcastIds: number[]) => Promise<void>;
   startEpisodeDownload: (episodeId: number, episodeTitle: string) => void;
 }
 
@@ -39,12 +39,12 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
   const downloadingIdsRef = useRef<Set<number>>(new Set());
 
   const startBatchDownload = useCallback(
-    (podcastIds: number[]) => {
-      if (isBatchDownloadingRef.current) return;
+    (podcastIds: number[]): Promise<void> => {
+      if (isBatchDownloadingRef.current) return Promise.resolve();
       isBatchDownloadingRef.current = true;
       setIsBatchDownloading(true);
 
-      batchDownloadNew(podcastIds, (progress) => {
+      return batchDownloadNew(podcastIds, (progress) => {
         setBatchProgress(progress);
       })
         .then(() => {

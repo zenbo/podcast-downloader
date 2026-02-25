@@ -30,7 +30,6 @@ function EpisodeListPage() {
   }
 
   function handleBatchDownload() {
-    console.log("[BatchDL] 開始: podcastId=%d", podcastId);
     startBatchDownload([podcastId]);
   }
 
