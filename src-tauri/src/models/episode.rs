@@ -58,6 +58,8 @@ pub struct BatchDownloadProgress {
     pub episode_progress: DownloadProgress,
     pub completed_count: usize,
     pub total_count: usize,
+    /// バッチDL対象エピソードIDリスト（最初の通知でのみ送信）
+    pub target_episode_ids: Option<Vec<i64>>,
 }
 
 /// 一括ダウンロード結果サマリー

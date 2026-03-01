@@ -98,6 +98,23 @@ pub async fn batch_download_new(
         podcast_ids,
         total_count
     );
+
+    // DLループ開始前に対象エピソードIDリストを通知
+    let target_ids: Vec<i64> = all_episodes.iter().map(|(ep, _)| ep.id).collect();
+    let _ = on_progress.send(BatchDownloadProgress {
+        current_episode_id: 0,
+        current_episode_title: String::new(),
+        episode_progress: DownloadProgress {
+            episode_id: 0,
+            downloaded_bytes: 0,
+            total_bytes: None,
+            percentage: None,
+        },
+        completed_count: 0,
+        total_count,
+        target_episode_ids: Some(target_ids),
+    });
+
     let mut completed_count: usize = 0;
     let mut failed_count: usize = 0;
 
@@ -130,6 +147,7 @@ pub async fn batch_download_new(
                         episode_progress: progress,
                         completed_count: current_completed,
                         total_count,
+                        target_episode_ids: None,
                     });
                 }),
             )

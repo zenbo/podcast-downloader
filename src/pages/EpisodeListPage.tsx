@@ -21,8 +21,13 @@ function EpisodeListPage() {
   const { data: episodes, isLoading, error } = useEpisodes(podcastId);
   const checkNew = useCheckNewEpisodes();
 
-  const { startBatchDownload, startEpisodeDownload, isBatchDownloading, downloadingIds } =
-    useDownload();
+  const {
+    startBatchDownload,
+    startEpisodeDownload,
+    isBatchDownloading,
+    downloadingIds,
+    batchTargetIds,
+  } = useDownload();
 
   function handleDownload(episodeId: number) {
     const episode = episodes?.find((e) => e.id === episodeId);
@@ -128,7 +133,7 @@ function EpisodeListPage() {
               <EpisodeCard
                 key={episode.id}
                 episode={episode}
-                isDownloading={downloadingIds.has(episode.id)}
+                isDownloading={downloadingIds.has(episode.id) || batchTargetIds.has(episode.id)}
                 onDownload={() => handleDownload(episode.id)}
               />
             ))}
