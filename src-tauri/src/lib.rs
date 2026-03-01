@@ -38,6 +38,7 @@ pub fn run() {
             commands::episode::list_episodes,
             commands::episode::check_new_episodes,
             commands::episode::check_all_new,
+            commands::episode::skip_episode,
             commands::download::download_episode,
             commands::download::batch_download_new,
             commands::settings::get_settings,

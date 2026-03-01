@@ -1,6 +1,11 @@
 import { invoke, Channel } from "@tauri-apps/api/core";
 import type { DownloadProgress, BatchDownloadProgress, BatchDownloadSummary } from "@/types";
 
+/** エピソードをDLせずにDL済み扱いにする（スキップ） */
+export async function skipEpisode(episodeId: number): Promise<void> {
+  return invoke<void>("skip_episode", { episodeId });
+}
+
 /** エピソードをダウンロードする（進捗コールバック付き） */
 export async function downloadEpisode(
   episodeId: number,

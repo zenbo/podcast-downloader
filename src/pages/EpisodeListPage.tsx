@@ -1,10 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { RefreshCw, Download, Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { useDownload } from "@/stores/download-context";
-import { usePodcasts } from "@/hooks/use-podcasts";
-import { useEpisodes, useCheckNewEpisodes } from "@/hooks/use-episodes";
+import { usePodcasts, podcastKeys } from "@/hooks/use-podcasts";
+import { useEpisodes, useCheckNewEpisodes, episodeKeys } from "@/hooks/use-episodes";
+import { skipEpisode } from "@/services/download";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Header } from "@/components/common/Header";
@@ -18,6 +20,7 @@ function EpisodeListPage() {
   const { data: podcasts, isSuccess: podcastsLoaded } = usePodcasts();
   const podcast = podcasts?.find((p) => p.id === podcastId);
 
+  const queryClient = useQueryClient();
   const { data: episodes, isLoading, error } = useEpisodes(podcastId);
   const checkNew = useCheckNewEpisodes();
 
@@ -32,6 +35,16 @@ function EpisodeListPage() {
   function handleDownload(episodeId: number) {
     const episode = episodes?.find((e) => e.id === episodeId);
     startEpisodeDownload(episodeId, episode?.title ?? "");
+  }
+
+  async function handleSkip(episodeId: number) {
+    try {
+      await skipEpisode(episodeId);
+      await queryClient.invalidateQueries({ queryKey: episodeKeys.list(podcastId) });
+      await queryClient.invalidateQueries({ queryKey: podcastKeys.all });
+    } catch (err) {
+      toast.error(String(err));
+    }
   }
 
   function handleBatchDownload() {
@@ -135,6 +148,7 @@ function EpisodeListPage() {
                 episode={episode}
                 isDownloading={downloadingIds.has(episode.id) || batchTargetIds.has(episode.id)}
                 onDownload={() => handleDownload(episode.id)}
+                onSkip={() => handleSkip(episode.id)}
               />
             ))}
           </div>

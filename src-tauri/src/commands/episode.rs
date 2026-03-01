@@ -67,6 +67,14 @@ pub(crate) fn check_new_episodes_impl(
     })
 }
 
+/// エピソードをDLせずにDL済み扱いにする（スキップ）
+#[tauri::command]
+pub async fn skip_episode(episode_id: i64, state: State<'_, DbState>) -> Result<(), AppError> {
+    let conn = state.0.lock().map_err(|e| AppError::Other(e.to_string()))?;
+    db::episode::mark_downloaded(&conn, episode_id)?;
+    Ok(())
+}
+
 /// 全番組の新着をチェックする
 #[tauri::command]
 pub async fn check_all_new(
@@ -163,6 +171,32 @@ mod tests {
         // 新着 5 件のうち、今回新たに見つかったのは 2 件
         assert_eq!(result.new_count, 5);
         assert_eq!(result.newly_found_count, 2);
+    }
+
+    #[test]
+    fn test_skip_episode_marks_downloaded() {
+        let state = create_test_db_state();
+        let podcast_id = setup_podcast_in_state(&state, "Podcast", "https://example.com/feed");
+        let feed = make_feed("Podcast", 3);
+
+        let conn = state.0.lock().unwrap();
+        check_new_episodes_impl(&conn, podcast_id, feed).unwrap();
+
+        // スキップ前: 全エピソードが新着
+        let new_before = db::episode::get_new_episodes(&conn, podcast_id).unwrap();
+        assert_eq!(new_before.len(), 3);
+
+        // エピソード 1 件をスキップ
+        let episode_id = new_before[0].id;
+        db::episode::mark_downloaded(&conn, episode_id).unwrap();
+
+        // スキップ後: downloaded_at が設定され、新着から消える
+        let episodes = db::episode::list_by_podcast(&conn, podcast_id).unwrap();
+        let skipped = episodes.iter().find(|e| e.id == episode_id).unwrap();
+        assert!(skipped.downloaded_at.is_some());
+
+        let new_after = db::episode::get_new_episodes(&conn, podcast_id).unwrap();
+        assert_eq!(new_after.len(), 2);
     }
 
     #[tokio::test]
