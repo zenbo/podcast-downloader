@@ -1,24 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Download, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
-import type { BatchDownloadProgress } from "@/types";
-import { batchDownloadNew } from "@/services/download";
-import { usePodcasts, useCheckAllNew, podcastKeys } from "@/hooks/use-podcasts";
+import { useDownload } from "@/stores/download-context";
+import { usePodcasts, useCheckAllNew } from "@/hooks/use-podcasts";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/common/Header";
-import { StatusBar } from "@/components/common/StatusBar";
 import { PodcastCard } from "@/components/podcast/PodcastCard";
 import { RegisterPodcastDialog } from "@/components/podcast/RegisterPodcastDialog";
 import { DeletePodcastDialog } from "@/components/podcast/DeletePodcastDialog";
 
 function PodcastListPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { data: podcasts, isLoading, error } = usePodcasts();
   const checkAllNew = useCheckAllNew();
+  const { startBatchDownload, isBatchDownloading } = useDownload();
 
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [registerDialogOpen, setRegisterDialogOpen] = useState(false);
@@ -26,8 +23,6 @@ function PodcastListPage() {
     id: number;
     title: string;
   } | null>(null);
-  const [batchProgress, setBatchProgress] = useState<BatchDownloadProgress | null>(null);
-  const [isBatchDownloading, setIsBatchDownloading] = useState(false);
 
   function handleCheckedChange(podcastId: number, checked: boolean) {
     setSelectedIds((prev) => {
@@ -41,24 +36,15 @@ function PodcastListPage() {
     });
   }
 
-  async function handleBatchDownload() {
+  function handleBatchDownload() {
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
 
-    setIsBatchDownloading(true);
-    try {
-      await batchDownloadNew(ids, (progress) => {
-        setBatchProgress(progress);
-      });
-      setSelectedIds(new Set());
-      toast.success("ダウンロードが完了しました");
-      queryClient.invalidateQueries({ queryKey: podcastKeys.all });
-    } catch (err) {
-      toast.error(String(err));
-    } finally {
-      setBatchProgress(null);
-      setIsBatchDownloading(false);
-    }
+    startBatchDownload(ids).then((summary) => {
+      if (summary && summary.failedCount === 0) {
+        setSelectedIds(new Set());
+      }
+    });
   }
 
   function handleCheckAllNew() {
@@ -78,7 +64,7 @@ function PodcastListPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <>
       <Header>
         <Button
           variant="outline"
@@ -145,21 +131,6 @@ function PodcastListPage() {
         )}
       </main>
 
-      <StatusBar
-        progress={
-          batchProgress
-            ? {
-                type: "batch",
-                id: batchProgress.currentEpisodeId,
-                title: batchProgress.currentEpisodeTitle,
-                percentage: batchProgress.episodeProgress.percentage ?? 0,
-                completedCount: batchProgress.completedCount,
-                totalCount: batchProgress.totalCount,
-              }
-            : null
-        }
-      />
-
       <RegisterPodcastDialog open={registerDialogOpen} onOpenChange={setRegisterDialogOpen} />
 
       <DeletePodcastDialog
@@ -170,7 +141,7 @@ function PodcastListPage() {
         podcastTitle={deleteTarget?.title ?? ""}
         podcastId={deleteTarget?.id ?? 0}
       />
-    </div>
+    </>
   );
 }
 

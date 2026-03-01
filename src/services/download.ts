@@ -1,5 +1,5 @@
 import { invoke, Channel } from "@tauri-apps/api/core";
-import type { DownloadProgress, BatchDownloadProgress } from "@/types";
+import type { DownloadProgress, BatchDownloadProgress, BatchDownloadSummary } from "@/types";
 
 /** エピソードをダウンロードする（進捗コールバック付き） */
 export async function downloadEpisode(
@@ -18,10 +18,10 @@ export async function downloadEpisode(
 export async function batchDownloadNew(
   podcastIds: number[],
   onProgress: (progress: BatchDownloadProgress) => void,
-): Promise<void> {
+): Promise<BatchDownloadSummary> {
   const channel = new Channel<BatchDownloadProgress>();
   channel.onmessage = onProgress;
-  return invoke<void>("batch_download_new", {
+  return invoke<BatchDownloadSummary>("batch_download_new", {
     podcastIds,
     onProgress: channel,
   });

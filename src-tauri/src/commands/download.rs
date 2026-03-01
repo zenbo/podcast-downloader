@@ -4,7 +4,9 @@ use tauri::State;
 
 use crate::db::{self, DbState};
 use crate::error::AppError;
-use crate::models::episode::{BatchDownloadProgress, DownloadProgress, Episode};
+use crate::models::episode::{
+    BatchDownloadProgress, BatchDownloadSummary, DownloadProgress, Episode,
+};
 use crate::services::filename;
 use crate::services::traits::{FileDownloader, ServiceContainer, SettingsStore};
 
@@ -77,7 +79,7 @@ pub async fn batch_download_new(
     on_progress: Channel<BatchDownloadProgress>,
     state: State<'_, DbState>,
     services: State<'_, ServiceContainer>,
-) -> Result<(), AppError> {
+) -> Result<BatchDownloadSummary, AppError> {
     let settings = services.settings_store.load_settings()?;
     let download_dir = settings
         .download_dir
@@ -159,7 +161,11 @@ pub async fn batch_download_new(
         );
     }
 
-    Ok(())
+    Ok(BatchDownloadSummary {
+        completed_count,
+        failed_count,
+        total_count,
+    })
 }
 
 /// 指定番組の新着エピソードを収集する（テスト可能なヘルパー）

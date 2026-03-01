@@ -1,6 +1,6 @@
 import { Progress } from "@/components/ui/progress";
 
-type ProgressInfo =
+export type ProgressInfo =
   | { type: "single"; id: number; title: string; percentage: number }
   | {
       type: "batch";

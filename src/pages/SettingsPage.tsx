@@ -109,17 +109,17 @@ function SettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-screen">
+      <>
         <Header backTo="/" />
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <>
       <Header backTo="/">
         {saveStatus === "saving" && (
           <span className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -205,7 +205,7 @@ function SettingsPage() {
           </section>
         </div>
       </main>
-    </div>
+    </>
   );
 }
 
