@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DownloadProvider, useDownload } from "@/stores/download-context";
-import type { BatchDownloadProgress, BatchDownloadSummary } from "@/types";
+import type { BatchDownloadSummary } from "@/types";
 
 vi.mock("sonner", () => ({
   toast: Object.assign(vi.fn(), {
@@ -47,10 +47,9 @@ describe("download-context", () => {
     });
 
     it("startBatchDownload で targetEpisodeIds を受け取ると batchTargetIds にセットされる", async () => {
-      let capturedOnProgress: ((progress: BatchDownloadProgress) => void) | undefined;
+      let resolveBatch: ((summary: BatchDownloadSummary) => void) | undefined;
 
       mockBatchDownloadNew.mockImplementation((_ids, onProgress) => {
-        capturedOnProgress = onProgress;
         // 初回通知: 対象IDリストを送信
         onProgress({
           currentEpisodeId: 0,
@@ -65,21 +64,25 @@ describe("download-context", () => {
           totalCount: 3,
           targetEpisodeIds: [10, 20, 30],
         });
-        return Promise.resolve({
-          completedCount: 3,
-          failedCount: 0,
-          totalCount: 3,
-        } satisfies BatchDownloadSummary);
+        return new Promise<BatchDownloadSummary>((resolve) => {
+          resolveBatch = resolve;
+        });
       });
 
       const { result } = renderHook(() => useDownload(), { wrapper: createWrapper() });
 
-      await act(async () => {
-        await result.current.startBatchDownload([1]);
+      // バッチDLを開始（未完了のまま）
+      act(() => {
+        result.current.startBatchDownload([1]);
       });
 
-      // onProgress が呼ばれたことを確認
-      expect(capturedOnProgress).toBeDefined();
+      // batchTargetIds に対象IDがセットされていることを検証
+      expect(result.current.batchTargetIds).toEqual(new Set([10, 20, 30]));
+
+      // クリーンアップ
+      await act(async () => {
+        resolveBatch?.({ completedCount: 3, failedCount: 0, totalCount: 3 });
+      });
     });
 
     it("startBatchDownload 完了後に batchTargetIds がクリアされる", async () => {
