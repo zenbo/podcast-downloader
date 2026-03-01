@@ -2,18 +2,27 @@ import { Download, Loader2, Check } from "lucide-react";
 import type { Episode } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 interface EpisodeCardProps {
   episode: Episode;
   isDownloading: boolean;
+  isSkipping: boolean;
   onDownload: () => void;
+  onSkip: () => void;
 }
 
 function formatDate(iso: string): string {
   return iso.slice(0, 10);
 }
 
-export function EpisodeCard({ episode, isDownloading, onDownload }: EpisodeCardProps) {
+export function EpisodeCard({
+  episode,
+  isDownloading,
+  isSkipping,
+  onDownload,
+  onSkip,
+}: EpisodeCardProps) {
   const isDownloaded = episode.downloadedAt !== null;
 
   return (
@@ -33,19 +42,41 @@ export function EpisodeCard({ episode, isDownloading, onDownload }: EpisodeCardP
         <p className="text-xs text-muted-foreground">{formatDate(episode.publishedAt)}</p>
       </div>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="ダウンロード"
-        onClick={onDownload}
-        disabled={isDownloading}
-      >
-        {isDownloading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Download className="h-4 w-4" />
-        )}
-      </Button>
+      {!isDownloaded && !isDownloading && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="DL済みにする"
+              onClick={onSkip}
+              disabled={isSkipping}
+            >
+              <Check className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>DL済みにする</TooltipContent>
+        </Tooltip>
+      )}
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="ダウンロード"
+            onClick={onDownload}
+            disabled={isDownloading}
+          >
+            {isDownloading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>ダウンロード</TooltipContent>
+      </Tooltip>
     </Card>
   );
 }

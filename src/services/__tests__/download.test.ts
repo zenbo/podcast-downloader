@@ -1,12 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { invoke, Channel } from "@tauri-apps/api/core";
-import { downloadEpisode, batchDownloadNew } from "@/services/download";
+import { skipEpisode, downloadEpisode, batchDownloadNew } from "@/services/download";
 
 const mockInvoke = vi.mocked(invoke);
 
 describe("download service", () => {
   beforeEach(() => {
     mockInvoke.mockReset();
+  });
+
+  describe("skipEpisode", () => {
+    it("skip_episode コマンドを episodeId 付きで invoke する", async () => {
+      mockInvoke.mockResolvedValue(undefined);
+
+      await skipEpisode(42);
+
+      expect(mockInvoke).toHaveBeenCalledWith("skip_episode", {
+        episodeId: 42,
+      });
+    });
   });
 
   describe("downloadEpisode", () => {

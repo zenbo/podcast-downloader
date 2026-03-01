@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { waitFor } from "@testing-library/react";
 import { renderHookWithQueryClient } from "@/test/test-utils";
-import { useEpisodes, useCheckNewEpisodes } from "@/hooks/use-episodes";
+import { useEpisodes, useCheckNewEpisodes, useSkipEpisode } from "@/hooks/use-episodes";
 import type { Episode } from "@/types";
 
 vi.mock("@/services/episode", () => ({
@@ -9,10 +9,16 @@ vi.mock("@/services/episode", () => ({
   checkNewEpisodes: vi.fn(),
 }));
 
+vi.mock("@/services/download", () => ({
+  skipEpisode: vi.fn(),
+}));
+
 import { listEpisodes, checkNewEpisodes } from "@/services/episode";
+import { skipEpisode } from "@/services/download";
 
 const mockListEpisodes = vi.mocked(listEpisodes);
 const mockCheckNewEpisodes = vi.mocked(checkNewEpisodes);
+const mockSkipEpisode = vi.mocked(skipEpisode);
 
 describe("use-episodes hooks", () => {
   beforeEach(() => {
@@ -43,6 +49,26 @@ describe("use-episodes hooks", () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data).toEqual(mockEpisodes);
       expect(mockListEpisodes).toHaveBeenCalledWith(10);
+    });
+  });
+
+  describe("useSkipEpisode", () => {
+    it("skipEpisode を呼び出し、成功時に episodes と podcasts クエリを無効化する", async () => {
+      mockSkipEpisode.mockResolvedValue(undefined);
+
+      const { result, queryClient } = renderHookWithQueryClient(() => useSkipEpisode(10));
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+      result.current.mutate(42);
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(mockSkipEpisode).toHaveBeenCalledWith(42);
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ["episodes", "list", 10],
+      });
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ["podcasts"],
+      });
     });
   });
 

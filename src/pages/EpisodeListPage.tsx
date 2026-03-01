@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { useDownload } from "@/stores/download-context";
 import { usePodcasts } from "@/hooks/use-podcasts";
-import { useEpisodes, useCheckNewEpisodes } from "@/hooks/use-episodes";
+import { useEpisodes, useCheckNewEpisodes, useSkipEpisode } from "@/hooks/use-episodes";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Header } from "@/components/common/Header";
@@ -20,6 +20,7 @@ function EpisodeListPage() {
 
   const { data: episodes, isLoading, error } = useEpisodes(podcastId);
   const checkNew = useCheckNewEpisodes();
+  const skipMutation = useSkipEpisode(podcastId);
 
   const {
     startBatchDownload,
@@ -32,6 +33,14 @@ function EpisodeListPage() {
   function handleDownload(episodeId: number) {
     const episode = episodes?.find((e) => e.id === episodeId);
     startEpisodeDownload(episodeId, episode?.title ?? "");
+  }
+
+  function handleSkip(episodeId: number) {
+    skipMutation.mutate(episodeId, {
+      onError: (err) => {
+        toast.error(String(err));
+      },
+    });
   }
 
   function handleBatchDownload() {
@@ -134,7 +143,9 @@ function EpisodeListPage() {
                 key={episode.id}
                 episode={episode}
                 isDownloading={downloadingIds.has(episode.id) || batchTargetIds.has(episode.id)}
+                isSkipping={skipMutation.isPending && skipMutation.variables === episode.id}
                 onDownload={() => handleDownload(episode.id)}
+                onSkip={() => handleSkip(episode.id)}
               />
             ))}
           </div>
