@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listEpisodes, checkNewEpisodes } from "@/services/episode";
+import { skipEpisode } from "@/services/download";
 import { podcastKeys } from "@/hooks/use-podcasts";
 
 export const episodeKeys = {
@@ -11,6 +12,17 @@ export function useEpisodes(podcastId: number) {
   return useQuery({
     queryKey: episodeKeys.list(podcastId),
     queryFn: () => listEpisodes(podcastId),
+  });
+}
+
+export function useSkipEpisode(podcastId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (episodeId: number) => skipEpisode(episodeId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: episodeKeys.list(podcastId) });
+      queryClient.invalidateQueries({ queryKey: podcastKeys.all });
+    },
   });
 }
 

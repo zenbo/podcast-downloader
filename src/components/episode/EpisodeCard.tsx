@@ -7,6 +7,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 interface EpisodeCardProps {
   episode: Episode;
   isDownloading: boolean;
+  isSkipping: boolean;
   onDownload: () => void;
   onSkip: () => void;
 }
@@ -15,7 +16,13 @@ function formatDate(iso: string): string {
   return iso.slice(0, 10);
 }
 
-export function EpisodeCard({ episode, isDownloading, onDownload, onSkip }: EpisodeCardProps) {
+export function EpisodeCard({
+  episode,
+  isDownloading,
+  isSkipping,
+  onDownload,
+  onSkip,
+}: EpisodeCardProps) {
   const isDownloaded = episode.downloadedAt !== null;
 
   return (
@@ -38,7 +45,13 @@ export function EpisodeCard({ episode, isDownloading, onDownload, onSkip }: Epis
       {!isDownloaded && !isDownloading && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="DL済みにする" onClick={onSkip}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="DL済みにする"
+              onClick={onSkip}
+              disabled={isSkipping}
+            >
               <Check className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -53,7 +66,7 @@ export function EpisodeCard({ episode, isDownloading, onDownload, onSkip }: Epis
             size="icon"
             aria-label="ダウンロード"
             onClick={onDownload}
-            disabled={isDownloading || isDownloaded}
+            disabled={isDownloading}
           >
             {isDownloading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
