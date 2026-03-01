@@ -77,4 +77,18 @@ describe("EpisodeCard", () => {
     const skipButton = screen.queryByRole("button", { name: "DL済みにする" });
     expect(skipButton).toBeNull();
   });
+
+  it("DL 済み: チェックアイコン表示・スキップボタン非表示", () => {
+    renderCard({
+      episode: createEpisode({ downloadedAt: "2025-01-02T00:00:00Z" }),
+    });
+
+    // スキップボタンが非表示
+    const skipButton = screen.queryByRole("button", { name: "DL済みにする" });
+    expect(skipButton).toBeNull();
+
+    // 左側インジケーターにチェックアイコン（text-green-600）が表示される
+    const indicator = document.querySelector(".text-green-600");
+    expect(indicator).not.toBeNull();
+  });
 });
