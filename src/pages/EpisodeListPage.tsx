@@ -28,6 +28,7 @@ function EpisodeListPage() {
     isBatchDownloading,
     downloadingIds,
     batchTargetIds,
+    batchProgress,
   } = useDownload();
 
   function handleDownload(episodeId: number) {
@@ -138,16 +139,22 @@ function EpisodeListPage() {
 
         {episodes && episodes.length > 0 && (
           <div className="space-y-2">
-            {episodes.map((episode) => (
-              <EpisodeCard
-                key={episode.id}
-                episode={episode}
-                isDownloading={downloadingIds.has(episode.id) || batchTargetIds.has(episode.id)}
-                isSkipping={skipMutation.isPending && skipMutation.variables === episode.id}
-                onDownload={() => handleDownload(episode.id)}
-                onSkip={() => handleSkip(episode.id)}
-              />
-            ))}
+            {episodes.map((episode) => {
+              const isBatchTarget = batchTargetIds.has(episode.id);
+              const isActiveInBatch =
+                isBatchTarget && batchProgress?.currentEpisodeId === episode.id;
+              return (
+                <EpisodeCard
+                  key={episode.id}
+                  episode={episode}
+                  isDownloading={downloadingIds.has(episode.id) || isActiveInBatch}
+                  isQueued={isBatchTarget && !isActiveInBatch && episode.downloadedAt === null}
+                  isSkipping={skipMutation.isPending && skipMutation.variables === episode.id}
+                  onDownload={() => handleDownload(episode.id)}
+                  onSkip={() => handleSkip(episode.id)}
+                />
+              );
+            })}
           </div>
         )}
       </main>

@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DownloadProvider, useDownload } from "@/stores/download-context";
+import { episodeKeys } from "@/hooks/use-episodes";
 import type { BatchDownloadSummary } from "@/types";
 
 vi.mock("sonner", () => ({
@@ -23,14 +24,18 @@ import { batchDownloadNew, downloadEpisode } from "@/services/download";
 const mockBatchDownloadNew = vi.mocked(batchDownloadNew);
 const mockDownloadEpisode = vi.mocked(downloadEpisode);
 
-function createWrapper() {
-  const queryClient = new QueryClient({
+function createQueryClient() {
+  return new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
+}
+
+function createWrapper(queryClient?: QueryClient) {
+  const qc = queryClient ?? createQueryClient();
   return ({ children }: { children: React.ReactNode }) =>
     React.createElement(
       QueryClientProvider,
-      { client: queryClient },
+      { client: qc },
       React.createElement(DownloadProvider, null, children),
     );
 }
@@ -142,6 +147,99 @@ describe("download-context", () => {
       });
 
       expect(result.current.batchTargetIds.size).toBe(0);
+    });
+  });
+
+  describe("バッチDL中のエピソード完了検知", () => {
+    it("currentEpisodeId が切り替わるとエピソードクエリが invalidate される", async () => {
+      let onProgress!: (progress: import("@/types").BatchDownloadProgress) => void;
+      let resolveBatch: ((summary: BatchDownloadSummary) => void) | undefined;
+
+      mockBatchDownloadNew.mockImplementation((_ids, cb) => {
+        onProgress = cb;
+        // 初回通知: 対象IDリストを送信
+        onProgress({
+          currentEpisodeId: 0,
+          currentEpisodeTitle: "",
+          episodeProgress: {
+            episodeId: 0,
+            downloadedBytes: 0,
+            totalBytes: null,
+            percentage: null,
+          },
+          completedCount: 0,
+          totalCount: 2,
+          targetEpisodeIds: [10, 20],
+        });
+        return new Promise<BatchDownloadSummary>((resolve) => {
+          resolveBatch = resolve;
+        });
+      });
+
+      const queryClient = createQueryClient();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+
+      const { result } = renderHook(() => useDownload(), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      // バッチDLを開始
+      act(() => {
+        result.current.startBatchDownload([1]);
+      });
+
+      invalidateSpy.mockClear();
+
+      // エピソード10のDL開始
+      act(() => {
+        onProgress({
+          currentEpisodeId: 10,
+          currentEpisodeTitle: "Episode 10",
+          episodeProgress: {
+            episodeId: 10,
+            downloadedBytes: 0,
+            totalBytes: 1000,
+            percentage: 0,
+          },
+          completedCount: 0,
+          totalCount: 2,
+          targetEpisodeIds: null,
+        });
+      });
+
+      // 最初のエピソード開始時は invalidate しない（前のエピソードがないため）
+      expect(invalidateSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({ queryKey: episodeKeys.all }),
+      );
+
+      invalidateSpy.mockClear();
+
+      // エピソード10完了 → エピソード20のDL開始
+      act(() => {
+        onProgress({
+          currentEpisodeId: 20,
+          currentEpisodeTitle: "Episode 20",
+          episodeProgress: {
+            episodeId: 20,
+            downloadedBytes: 0,
+            totalBytes: 2000,
+            percentage: 0,
+          },
+          completedCount: 1,
+          totalCount: 2,
+          targetEpisodeIds: null,
+        });
+      });
+
+      // エピソード10完了を検知して invalidate される
+      expect(invalidateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ queryKey: episodeKeys.all }),
+      );
+
+      // クリーンアップ
+      await act(async () => {
+        resolveBatch?.({ completedCount: 2, failedCount: 0, totalCount: 2 });
+      });
     });
   });
 

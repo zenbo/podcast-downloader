@@ -1,4 +1,4 @@
-import { Download, Loader2, Check } from "lucide-react";
+import { Download, Loader2, Check, Clock } from "lucide-react";
 import type { Episode } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 interface EpisodeCardProps {
   episode: Episode;
   isDownloading: boolean;
+  isQueued: boolean;
   isSkipping: boolean;
   onDownload: () => void;
   onSkip: () => void;
@@ -19,6 +20,7 @@ function formatDate(iso: string): string {
 export function EpisodeCard({
   episode,
   isDownloading,
+  isQueued,
   isSkipping,
   onDownload,
   onSkip,
@@ -30,6 +32,8 @@ export function EpisodeCard({
       <div className="shrink-0 w-5 flex justify-center">
         {isDownloading ? (
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        ) : isQueued ? (
+          <Clock className="h-4 w-4 text-muted-foreground" />
         ) : isDownloaded ? (
           <Check className="h-4 w-4 text-green-600" />
         ) : episode.isNew ? (
@@ -42,7 +46,7 @@ export function EpisodeCard({
         <p className="text-xs text-muted-foreground">{formatDate(episode.publishedAt)}</p>
       </div>
 
-      {!isDownloaded && !isDownloading && (
+      {!isDownloaded && !isDownloading && !isQueued && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -64,18 +68,20 @@ export function EpisodeCard({
           <Button
             variant="ghost"
             size="icon"
-            aria-label="ダウンロード"
+            aria-label={isQueued ? "DL予定" : "ダウンロード"}
             onClick={onDownload}
-            disabled={isDownloading}
+            disabled={isDownloading || isQueued}
           >
             {isDownloading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isQueued ? (
+              <Clock className="h-4 w-4" />
             ) : (
               <Download className="h-4 w-4" />
             )}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>ダウンロード</TooltipContent>
+        <TooltipContent>{isQueued ? "DL予定" : "ダウンロード"}</TooltipContent>
       </Tooltip>
     </Card>
   );

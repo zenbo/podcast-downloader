@@ -41,6 +41,7 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
   const isBatchDownloadingRef = useRef(false);
   const downloadingIdsRef = useRef<Set<number>>(new Set());
   const batchTargetIdsRef = useRef<Set<number>>(new Set());
+  const prevBatchEpisodeIdRef = useRef<number>(0);
 
   const startBatchDownload = useCallback(
     (podcastIds: number[]): Promise<BatchDownloadSummary | undefined> => {
@@ -48,12 +49,27 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
       isBatchDownloadingRef.current = true;
       setIsBatchDownloading(true);
 
+      prevBatchEpisodeIdRef.current = 0;
+
       return batchDownloadNew(podcastIds, (progress) => {
         if (progress.targetEpisodeIds) {
           const ids = new Set(progress.targetEpisodeIds);
           batchTargetIdsRef.current = ids;
           setBatchTargetIds(ids);
         }
+
+        // currentEpisodeId が切り替わった場合、前のエピソードが完了したため
+        // エピソードクエリを再取得して downloadedAt を反映する
+        if (
+          progress.currentEpisodeId !== 0 &&
+          progress.currentEpisodeId !== prevBatchEpisodeIdRef.current
+        ) {
+          if (prevBatchEpisodeIdRef.current !== 0) {
+            queryClient.invalidateQueries({ queryKey: episodeKeys.all });
+          }
+          prevBatchEpisodeIdRef.current = progress.currentEpisodeId;
+        }
+
         setBatchProgress(progress);
       })
         .then((summary: BatchDownloadSummary) => {
