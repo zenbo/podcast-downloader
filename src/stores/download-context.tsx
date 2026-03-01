@@ -12,6 +12,7 @@ interface DownloadContextValue {
   batchProgress: BatchDownloadProgress | null;
   isBatchDownloading: boolean;
   downloadingIds: ReadonlySet<number>;
+  batchTargetIds: ReadonlySet<number>;
   progressMap: ReadonlyMap<number, { progress: DownloadProgress; title: string }>;
   startBatchDownload: (podcastIds: number[]) => Promise<BatchDownloadSummary | undefined>;
   startEpisodeDownload: (episodeId: number, episodeTitle: string) => void;
@@ -35,8 +36,11 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
     Map<number, { progress: DownloadProgress; title: string }>
   >(new Map());
 
+  const [batchTargetIds, setBatchTargetIds] = useState<Set<number>>(new Set());
+
   const isBatchDownloadingRef = useRef(false);
   const downloadingIdsRef = useRef<Set<number>>(new Set());
+  const batchTargetIdsRef = useRef<Set<number>>(new Set());
 
   const startBatchDownload = useCallback(
     (podcastIds: number[]): Promise<BatchDownloadSummary | undefined> => {
@@ -45,6 +49,11 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
       setIsBatchDownloading(true);
 
       return batchDownloadNew(podcastIds, (progress) => {
+        if (progress.targetEpisodeIds) {
+          const ids = new Set(progress.targetEpisodeIds);
+          batchTargetIdsRef.current = ids;
+          setBatchTargetIds(ids);
+        }
         setBatchProgress(progress);
       })
         .then((summary: BatchDownloadSummary) => {
@@ -69,6 +78,8 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
           setBatchProgress(null);
           setIsBatchDownloading(false);
           isBatchDownloadingRef.current = false;
+          batchTargetIdsRef.current = new Set();
+          setBatchTargetIds(new Set());
         });
     },
     [queryClient],
@@ -77,6 +88,7 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
   const startEpisodeDownload = useCallback(
     (episodeId: number, episodeTitle: string) => {
       if (downloadingIdsRef.current.has(episodeId)) return;
+      if (batchTargetIdsRef.current.has(episodeId)) return;
       downloadingIdsRef.current = new Set(downloadingIdsRef.current).add(episodeId);
       setDownloadingIds((prev) => new Set(prev).add(episodeId));
 
@@ -113,6 +125,7 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
       batchProgress,
       isBatchDownloading,
       downloadingIds,
+      batchTargetIds,
       progressMap,
       startBatchDownload,
       startEpisodeDownload,
@@ -121,6 +134,7 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
       batchProgress,
       isBatchDownloading,
       downloadingIds,
+      batchTargetIds,
       progressMap,
       startBatchDownload,
       startEpisodeDownload,

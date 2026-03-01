@@ -13,6 +13,7 @@ export interface BatchDownloadProgress {
   episodeProgress: DownloadProgress;
   completedCount: number;
   totalCount: number;
+  targetEpisodeIds: number[] | null;
 }
 
 /** 一括ダウンロード結果サマリー */
