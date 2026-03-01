@@ -59,3 +59,12 @@ pub struct BatchDownloadProgress {
     pub completed_count: usize,
     pub total_count: usize,
 }
+
+/// 一括ダウンロード結果サマリー
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BatchDownloadSummary {
+    pub completed_count: usize,
+    pub failed_count: usize,
+    pub total_count: usize,
+}

@@ -14,3 +14,10 @@ export interface BatchDownloadProgress {
   completedCount: number;
   totalCount: number;
 }
+
+/** 一括ダウンロード結果サマリー */
+export interface BatchDownloadSummary {
+  completedCount: number;
+  failedCount: number;
+  totalCount: number;
+}

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import type { BatchDownloadProgress, DownloadProgress } from "@/types";
+import type { BatchDownloadProgress, BatchDownloadSummary, DownloadProgress } from "@/types";
 import { batchDownloadNew, downloadEpisode } from "@/services/download";
 import { podcastKeys } from "@/hooks/use-podcasts";
 import { episodeKeys } from "@/hooks/use-episodes";
@@ -13,7 +13,7 @@ interface DownloadContextValue {
   isBatchDownloading: boolean;
   downloadingIds: ReadonlySet<number>;
   progressMap: ReadonlyMap<number, { progress: DownloadProgress; title: string }>;
-  startBatchDownload: (podcastIds: number[]) => Promise<void>;
+  startBatchDownload: (podcastIds: number[]) => Promise<BatchDownloadSummary | undefined>;
   startEpisodeDownload: (episodeId: number, episodeTitle: string) => void;
 }
 
@@ -39,21 +39,31 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
   const downloadingIdsRef = useRef<Set<number>>(new Set());
 
   const startBatchDownload = useCallback(
-    (podcastIds: number[]): Promise<void> => {
-      if (isBatchDownloadingRef.current) return Promise.resolve();
+    (podcastIds: number[]): Promise<BatchDownloadSummary | undefined> => {
+      if (isBatchDownloadingRef.current) return Promise.resolve(undefined);
       isBatchDownloadingRef.current = true;
       setIsBatchDownloading(true);
 
       return batchDownloadNew(podcastIds, (progress) => {
         setBatchProgress(progress);
       })
-        .then(() => {
-          toast.success("ダウンロードが完了しました");
+        .then((summary: BatchDownloadSummary) => {
+          if (summary.failedCount === 0) {
+            toast.success("ダウンロードが完了しました");
+          } else if (summary.completedCount === 0) {
+            toast.error(`全 ${summary.totalCount} 件のダウンロードに失敗しました`);
+          } else {
+            toast.warning(
+              `${summary.totalCount} 件中 ${summary.completedCount} 件成功、${summary.failedCount} 件失敗`,
+            );
+          }
           queryClient.invalidateQueries({ queryKey: podcastKeys.all });
           queryClient.invalidateQueries({ queryKey: episodeKeys.all });
+          return summary;
         })
         .catch((err) => {
           toast.error(String(err));
+          return undefined;
         })
         .finally(() => {
           setBatchProgress(null);

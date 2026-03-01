@@ -40,8 +40,10 @@ function PodcastListPage() {
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
 
-    startBatchDownload(ids).then(() => {
-      setSelectedIds(new Set());
+    startBatchDownload(ids).then((summary) => {
+      if (summary && summary.failedCount === 0) {
+        setSelectedIds(new Set());
+      }
     });
   }
 
