@@ -81,7 +81,7 @@ describe("EpisodeCard", () => {
   it("配信日に曜日が表示される", () => {
     // 2025-01-01 は水曜日
     renderCard({ episode: createEpisode({ publishedAt: "2025-01-01T00:00:00Z" }) });
-    expect(screen.getByText("2025-01-01(水)")).toBeTruthy();
+    expect(screen.getByText("2025-01-01(水) 09:00")).toBeTruthy();
   });
 
   it("DL 済み: チェックアイコン表示・スキップボタン非表示", () => {
