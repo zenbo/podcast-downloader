@@ -1,6 +1,6 @@
 import { Trash2 } from "lucide-react";
 import type { PodcastSummary } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +47,9 @@ export function PodcastCard({
         </button>
         {podcast.author && (
           <p className="text-xs text-muted-foreground truncate">{podcast.author}</p>
+        )}
+        {podcast.latestPublishedAt && (
+          <p className="text-xs text-muted-foreground">{formatDate(podcast.latestPublishedAt)}</p>
         )}
       </div>
 

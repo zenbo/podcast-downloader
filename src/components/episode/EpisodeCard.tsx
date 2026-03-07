@@ -3,6 +3,7 @@ import type { Episode } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { formatDate } from "@/lib/utils";
 
 interface EpisodeCardProps {
   episode: Episode;
@@ -11,10 +12,6 @@ interface EpisodeCardProps {
   isSkipping: boolean;
   onDownload: () => void;
   onSkip: () => void;
-}
-
-function formatDate(iso: string): string {
-  return iso.slice(0, 10);
 }
 
 export function EpisodeCard({

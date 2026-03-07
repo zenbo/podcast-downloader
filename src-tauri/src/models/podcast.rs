@@ -25,6 +25,7 @@ pub struct PodcastSummary {
     pub author: Option<String>,
     pub image_url: Option<String>,
     pub new_episode_count: usize,
+    pub latest_published_at: Option<String>,
 }
 
 /// RSS フィードからパースした番組情報（DB 挿入前の中間形式）

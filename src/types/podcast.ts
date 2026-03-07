@@ -19,6 +19,7 @@ export interface PodcastSummary {
   author: string | null;
   imageUrl: string | null;
   newEpisodeCount: number;
+  latestPublishedAt: string | null;
 }
 
 /** 全番組の新着チェック結果 */
