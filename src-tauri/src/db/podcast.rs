@@ -57,7 +57,11 @@ pub fn list(conn: &Connection) -> Result<Vec<PodcastSummary>, AppError> {
                  ORDER BY e2.published_at DESC LIMIT 1),
                 '1970-01-01'
               )
-           ) AS new_episode_count
+           ) AS new_episode_count,
+           (SELECT e3.published_at FROM episodes e3
+            WHERE e3.podcast_id = p.id
+            ORDER BY e3.published_at DESC LIMIT 1
+           ) AS latest_published_at
          FROM podcasts p
          ORDER BY p.created_at DESC",
     )?;
@@ -68,6 +72,7 @@ pub fn list(conn: &Connection) -> Result<Vec<PodcastSummary>, AppError> {
             author: row.get("author")?,
             image_url: row.get("image_url")?,
             new_episode_count: row.get::<_, i64>("new_episode_count")? as usize,
+            latest_published_at: row.get("latest_published_at")?,
         })
     })?;
     let mut podcasts = Vec::new();
@@ -175,6 +180,55 @@ mod tests {
         assert!(titles.contains(&"Podcast A"));
         assert!(titles.contains(&"Podcast B"));
         assert_eq!(podcasts[0].new_episode_count, 0);
+        // エピソードがない場合は latest_published_at が None
+        assert!(podcasts[0].latest_published_at.is_none());
+    }
+
+    #[test]
+    fn test_list_includes_latest_published_at() {
+        let conn = init_test_db().unwrap();
+        let podcast = insert(
+            &conn,
+            "Podcast A",
+            None,
+            None,
+            "https://a.com/feed",
+            None,
+            None,
+        )
+        .unwrap();
+
+        // エピソードを追加
+        crate::db::episode::insert_bulk(
+            &conn,
+            podcast.id,
+            &[
+                crate::models::episode::NewEpisode {
+                    guid: "ep1".to_string(),
+                    title: "Episode 1".to_string(),
+                    description: None,
+                    audio_url: "https://example.com/1.mp3".to_string(),
+                    file_size: None,
+                    published_at: "2026-01-01T00:00:00Z".to_string(),
+                },
+                crate::models::episode::NewEpisode {
+                    guid: "ep2".to_string(),
+                    title: "Episode 2".to_string(),
+                    description: None,
+                    audio_url: "https://example.com/2.mp3".to_string(),
+                    file_size: None,
+                    published_at: "2026-01-15T00:00:00Z".to_string(),
+                },
+            ],
+        )
+        .unwrap();
+
+        let podcasts = list(&conn).unwrap();
+        assert_eq!(podcasts.len(), 1);
+        assert_eq!(
+            podcasts[0].latest_published_at.as_deref(),
+            Some("2026-01-15T00:00:00Z")
+        );
     }
 
     #[test]

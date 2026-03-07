@@ -41,6 +41,7 @@ describe("use-podcasts hooks", () => {
           author: null,
           imageUrl: null,
           newEpisodeCount: 0,
+          latestPublishedAt: null,
         },
       ];
       mockListPodcasts.mockResolvedValue(mockData);

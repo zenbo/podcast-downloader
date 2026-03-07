@@ -44,6 +44,7 @@ describe("podcast service", () => {
           author: null,
           imageUrl: null,
           newEpisodeCount: 3,
+          latestPublishedAt: "2026-01-15T00:00:00Z",
         },
       ];
       mockInvoke.mockResolvedValue(mockSummaries);

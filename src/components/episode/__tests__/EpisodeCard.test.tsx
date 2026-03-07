@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { EpisodeCard } from "@/components/episode/EpisodeCard";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { formatDate } from "@/lib/utils";
 import type { Episode } from "@/types";
 
 function createEpisode(overrides: Partial<Episode> = {}): Episode {
@@ -76,6 +77,12 @@ describe("EpisodeCard", () => {
 
     const skipButton = screen.queryByRole("button", { name: "DL済みにする" });
     expect(skipButton).toBeNull();
+  });
+
+  it("配信日に曜日と時刻が表示される", () => {
+    const iso = "2025-01-15T12:30:00Z";
+    renderCard({ episode: createEpisode({ publishedAt: iso }) });
+    expect(screen.getByText(formatDate(iso))).toBeTruthy();
   });
 
   it("DL 済み: チェックアイコン表示・スキップボタン非表示", () => {
