@@ -56,6 +56,7 @@ function PodcastListPage() {
         } else {
           toast("新着エピソードはありません");
         }
+        setSelectedIds(new Set(results.filter((r) => r.newCount > 0).map((r) => r.podcastId)));
       },
       onError: (err) => {
         toast.error(String(err));
